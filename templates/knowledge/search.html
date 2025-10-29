@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Поиск - База знаний{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>Поиск по базе знаний</h1>
+    
+    <form class="search-form" action="{% url 'knowledge:search' %}" method="get" style="max-width: 600px; margin: 2rem auto;">
+        <input type="text" name="q" class="search-input" placeholder="Введите поисковый запрос..." 
+               value="{{ query }}" style="width: 100%;">
+        <button type="submit" class="search-button" style="width: 150px;">Искать</button>
+    </form>
+</div>
+
+{% if query %}
+<div class="card">
+    <h2>Результаты поиска для "{{ query }}"</h2>
+    
+    {% if results %}
+    <p>Найдено статей: {{ results_count }}</p>
+    
+    <ul class="article-list">
+        {% for article in results %}
+        <li class="article-item">
+            <h3 style="margin-bottom: 0.5rem;">
+                <a href="{% url 'knowledge:article_detail' article.id %}" style="color: #2c3e50; text-decoration: none;">
+                    {{ article.title }}
+                </a>
+            </h3>
+            <div style="font-size: 0.9rem; color: #7f8c8d; margin-bottom: 0.5rem;">
+                <span>Раздел: <a href="{% url 'knowledge:section_detail' article.section.id %}">{{ article.section.title }}</a></span> • 
+                <span>Автор: {{ article.author.get_full_name|default:article.author.username }}</span> • 
+                <span>{{ article.created_at|date:"d.m.Y" }}</span>
+            </div>
+            {% if article.summary %}
+            <p>{{ article.summary|truncatewords:30 }}</p>
+            {% endif %}
+            {% if article.tags.all %}
+            <div style="margin-top: 0.5rem;">
+                {% for tag in article.tags.all %}
+                <a href="{% url 'knowledge:articles_by_tag' tag.name %}" class="tag">{{ tag.name }}</a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+
+    <!-- Пагинация -->
+    {% if results.has_other_pages %}
+    <div style="margin-top: 2rem; text-align: center;">
+        {% if results.has_previous %}
+        <a href="?q={{ query }}&page={{ results.previous_page_number }}" class="search-button" style="text-decoration: none; margin-right: 1rem;">
+            ← Назад
+        </a>
+        {% endif %}
+        
+        <span style="margin: 0 1rem;">
+            Страница {{ results.number }} из {{ results.paginator.num_pages }}
+        </span>
+        
+        {% if results.has_next %}
+        <a href="?q={{ query }}&page={{ results.next_page_number }}" class="search-button" style="text-decoration: none; margin-left: 1rem;">
+            Вперед →
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <p>По вашему запросу ничего не найдено.</p>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Knowledge Base • Apple Style{% endblock %}</title>
+    <style>
+        :root {
+            --primary-bg: #ffffff;
+            --secondary-bg: #f5f5f7;
+            --tertiary-bg: #fbfbfd;
+            --text-primary: #1d1d1f;
+            --text-secondary: #86868b;
+            --text-tertiary: #a1a1a6;
+            --accent-blue: #0071e3;
+            --accent-blue-hover: #0077ed;
+            --border-light: #d2d2d7;
+            --border-lighter: #e8e8ed;
+            --shadow-subtle: 0 2px 20px rgba(0, 0, 0, 0.08);
+            --shadow-medium: 0 4px 30px rgba(0, 0, 0, 0.12);
+            --radius-small: 12px;
+            --radius-medium: 18px;
+            --radius-large: 21px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary-bg: #000000;
+                --secondary-bg: #1d1d1f;
+                --tertiary-bg: #151516;
+                --text-primary: #f5f5f7;
+                --text-secondary: #a1a1a6;
+                --text-tertiary: #6e6e73;
+                --accent-blue: #2997ff;
+                --accent-blue-hover: #3ba1ff;
+                --border-light: #424245;
+                --border-lighter: #2c2c2e;
+                --shadow-subtle: 0 2px 20px rgba(0, 0, 0, 0.4);
+                --shadow-medium: 0 4px 30px rgba(0, 0, 0, 0.5);
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+            line-height: 1.47059;
+            font-weight: 400;
+            color: var(--text-primary);
+            background: var(--primary-bg);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header - Apple Style */
+        .header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid var(--border-lighter);
+            position: sticky;
+            top: 0;
+            z-index: 10000;
+            height: 60px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .header {
+                background: rgba(0, 0, 0, 0.8);
+            }
+        }
+
+        .nav-container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 0 32px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-icon {
+            font-size: 20px;
+        }
+
+        .nav-center {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 17px;
+            font-weight: 400;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            padding: 8px 0;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent-blue);
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 1px;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+        .search-input {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            padding: 8px 16px 8px 40px;
+            font-size: 15px;
+            color: var(--text-primary);
+            width: 240px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            outline: none;
+        }
+
+        .search-input:focus {
+            width: 280px;
+            border-color: var(--accent-blue);
+            background: var(--primary-bg);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-tertiary);
+            font-size: 14px;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn {
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            border-radius: 980px;
+            padding: 8px 20px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background: var(--accent-blue-hover);
+            transform: scale(1.04);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--accent-blue);
+            border: 1px solid var(--border-light);
+        }
+
+        .btn-secondary:hover {
+            background: var(--secondary-bg);
+            transform: scale(1.04);
+        }
+
+        /* Main Layout */
+        .main-container {
+            flex: 1;
+            display: flex;
+            max-width: 1440px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 0 32px;
+        }
+
+        /* Sidebar - Apple Style */
+        .sidebar {
+            width: 320px;
+            min-width: 320px;
+            padding: 32px 0;
+            position: sticky;
+            top: 80px;
+            height: calc(100vh - 80px);
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            background: var(--secondary-bg);
+            border-radius: var(--radius-medium);
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border-lighter);
+        }
+
+        .sidebar-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tree-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .tree-item {
+            margin-bottom: 2px;
+        }
+
+        .tree-node {
+            position: relative;
+        }
+
+        .tree-link {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 15px;
+            gap: 10px;
+            border: 1px solid transparent;
+        }
+
+        .parent-link {
+            font-weight: 500;
+            background: transparent;
+        }
+
+        .child-link {
+            font-weight: 400;
+            margin-left: 24px;
+            font-size: 14px;
+        }
+
+        .tree-link:hover {
+            background: var(--tertiary-bg);
+            color: var(--text-primary);
+            border-color: var(--border-light);
+            transform: translateX(4px);
+        }
+
+        .tree-icon {
+            font-size: 16px;
+            opacity: 0.8;
+        }
+
+        .tree-text {
+            flex: 1;
+        }
+
+        .tree-arrow {
+            font-size: 12px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0.6;
+        }
+
+        .tree-link:hover .tree-arrow {
+            transform: rotate(90deg);
+            opacity: 1;
+        }
+
+        /* Quick Links */
+        .quick-links-list {
+            list-style: none;
+        }
+
+        .quick-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 15px;
+            gap: 12px;
+            margin-bottom: 4px;
+        }
+
+        .quick-link:hover {
+            background: var(--tertiary-bg);
+            color: var(--text-primary);
+            transform: translateX(4px);
+        }
+
+        .quick-link-icon {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 32px;
+            min-width: 0;
+        }
+
+        /* Cards - Apple Style */
+        .card {
+            background: var(--secondary-bg);
+            border-radius: var(--radius-medium);
+            padding: 32px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border-lighter);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent-blue), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .card-header {
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            line-height: 1.14286;
+        }
+
+        .card-subtitle {
+            font-size: 17px;
+            color: var(--text-secondary);
+            line-height: 1.47059;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: var(--text-tertiary);
+        }
+
+        .breadcrumb a {
+            color: var(--accent-blue);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--accent-blue-hover);
+        }
+
+        .breadcrumb-separator {
+            opacity: 0.5;
+        }
+
+        /* Tags */
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            background: var(--tertiary-bg);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 13px;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--border-lighter);
+            margin: 0 8px 8px 0;
+        }
+
+        .tag:hover {
+            background: var(--accent-blue);
+            color: white;
+            transform: scale(1.05);
+            border-color: var(--accent-blue);
+        }
+
+        /* Article List */
+        .article-list {
+            list-style: none;
+        }
+
+        .article-item {
+            padding: 24px 0;
+            border-bottom: 1px solid var(--border-lighter);
+            transition: all 0.3s ease;
+        }
+
+        .article-item:hover {
+            border-bottom-color: var(--accent-blue);
+        }
+
+        .article-item:last-child {
+            border-bottom: none;
+        }
+
+        .article-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+
+        .article-title a {
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .article-title a:hover {
+            color: var(--accent-blue);
+        }
+
+        .article-meta {
+            font-size: 14px;
+            color: var(--text-tertiary);
+            margin-bottom: 12px;
+            display: flex;
+            gap: 16px;
+        }
+
+        .article-summary {
+            font-size: 16px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--secondary-bg);
+            border-top: 1px solid var(--border-lighter);
+            padding: 32px 0;
+            margin-top: 64px;
+        }
+
+        .footer-content {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 0 32px;
+            text-align: center;
+            color: var(--text-tertiary);
+            font-size: 14px;
+        }
+
+        /* Responsive */
+        @media (max-width: 834px) {
+            .main-container {
+                flex-direction: column;
+                padding: 0 20px;
+            }
+            
+            .sidebar {
+                width: 100%;
+                position: static;
+                height: auto;
+                padding: 24px 0;
+            }
+            
+            .nav-container {
+                padding: 0 20px;
+            }
+            
+            .nav-center {
+                gap: 24px;
+            }
+            
+            .search-input {
+                width: 200px;
+            }
+            
+            .search-input:focus {
+                width: 240px;
+            }
+        }
+
+        @media (max-width: 734px) {
+            .nav-center {
+                display: none;
+            }
+            
+            .search-input {
+                width: 160px;
+            }
+            
+            .search-input:focus {
+                width: 200px;
+            }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--secondary-bg);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-light);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-tertiary);
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="nav-container">
+            <a href="{% url 'knowledge:home' %}" class="logo">
+                <span class="logo-icon">🧠</span>
+                Knowledge Base
+            </a>
+            
+            <nav class="nav-center">
+                <a href="{% url 'knowledge:home' %}" class="nav-link">Главная</a>
+                <a href="{% url 'knowledge:tag_cloud' %}" class="nav-link">Теги</a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'knowledge:create_article' %}" class="nav-link">Создать</a>
+                {% endif %}
+            </nav>
+            
+            <div class="nav-actions">
+                <div class="search-container">
+                    <span class="search-icon">🔍</span>
+                    <form action="{% url 'knowledge:search' %}" method="get">
+                        <input type="text" name="q" class="search-input" placeholder="Поиск..." value="{{ request.GET.q }}">
+                    </form>
+                </div>
+                
+                <div class="user-actions">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'admin:index' %}" class="btn-secondary" style="padding: 6px 16px; font-size: 14px;">
+                            👤 {{ user.username }}
+                        </a>
+                        <a href="{% url 'admin:logout' %}" class="btn-secondary" style="padding: 6px 16px; font-size: 14px;">
+                            Выйти
+                        </a>
+                    {% else %}
+                        <a href="{% url 'admin:login' %}" class="btn" style="padding: 6px 20px; font-size: 14px;">
+                            Войти
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- Боковая панель -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">
+                    <span>📚</span>
+                    Структура
+                </h3>
+                {% load knowledge_tags %}
+                {% section_tree %}
+            </div>
+            
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">
+                    <span>⚡</span>
+                    Быстрый доступ
+                </h3>
+                <ul class="quick-links-list">
+                    <li>
+                        <a href="{% url 'knowledge:tag_cloud' %}" class="quick-link">
+                            <span class="quick-link-icon">🏷️</span>
+                            Облако тегов
+                        </a>
+                    </li>
+                    {% if user.is_authenticated and user.profile.has_role == 'author' %}
+                    <li>
+                        <a href="{% url 'knowledge:create_article' %}" class="quick-link">
+                            <span class="quick-link-icon">✏️</span>
+                            Новая статья
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li>
+                        <a href="{% url 'knowledge:search' %}" class="quick-link">
+                            <span class="quick-link-icon">🔍</span>
+                            Расширенный поиск
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Основной контент -->
+        <main class="main-content">
+            {% block breadcrumb %}{% endblock %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>© 2024 Knowledge Base. Все права защищены.</p>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}Создать статью - База знаний{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>Создать новую статью</h1>
+    
+    {% if section %}
+    <div class="breadcrumb">
+        Статья будет создана в разделе: <strong>{{ section.title }}</strong>
+    </div>
+    {% endif %}
+    
+    {% if messages %}
+    <div style="margin-bottom: 1.5rem;">
+        {% for message in messages %}
+        <div style="padding: 1rem; border-radius: 4px; 
+                   {% if message.tags == 'error' %}background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;
+                   {% else %}background: #d4edda; color: #155724; border: 1px solid #c3e6cb;{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <form method="post" style="margin-top: 2rem;">
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+        <div style="color: #dc3545; margin-bottom: 1rem;">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+        
+        {% for field in form %}
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">
+                {{ field.label }}
+                {% if field.field.required %}<span style="color: #dc3545;">*</span>{% endif %}
+            </label>
+            
+            {{ field }}
+            
+            {% if field.help_text %}
+            <div style="font-size: 0.8rem; color: #6c757d; margin-top: 0.25rem;">
+                {{ field.help_text }}
+            </div>
+            {% endif %}
+            
+            {% if field.errors %}
+            <div style="color: #dc3545; font-size: 0.9rem; margin-top: 0.25rem;">
+                {{ field.errors }}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        
+        <div style="display: flex; gap: 1rem;">
+            <button type="submit" class="search-button" style="border: none; cursor: pointer;">
+                💾 Сохранить статью
+            </button>
+            <a href="{% if section %}{% url 'knowledge:section_detail' section.id %}{% else %}{% url 'knowledge:home' %}{% endif %}" 
+               class="search-button" 
+               style="background: #95a5a6; text-decoration: none; display: inline-block;">
+                ❌ Отмена
+            </a>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h3>Советы по созданию статей:</h3>
+    <ul style="margin-left: 1.5rem;">
+        <li>Используйте четкие и понятные заголовки</li>
+        <li>Добавляйте теги для лучшей категоризации</li>
+        <li>Пишите краткое описание - оно поможет пользователям быстро понять содержание</li>
+        <li>Используйте черновик для работы над статьей перед публикацией</li>
+    </ul>
+</div>
+
+<style>
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.form-control:focus {
+    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 100px;
+}
+</style>
+{% endblock %}

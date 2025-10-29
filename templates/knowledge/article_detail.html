@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ article.title }} - База знаний{% endblock %}
+
+{% block breadcrumb %}
+<nav class="breadcrumb">
+    <a href="{% url 'knowledge:home' %}">Главная</a>
+    {% for crumb in breadcrumbs %}
+        &rsaquo; <a href="{% url 'knowledge:section_detail' crumb.id %}">{{ crumb.title }}</a>
+    {% endfor %}
+    &rsaquo; <span>{{ article.title }}</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<article class="card">
+    <header style="margin-bottom: 2rem; border-bottom: 2px solid #ecf0f1; padding-bottom: 1rem;">
+        <h1>{{ article.title }}</h1>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; flex-wrap: wrap; gap: 1rem;">
+            <div style="font-size: 0.9rem; color: #7f8c8d;">
+                <strong>Автор:</strong> {{ article.author.get_full_name|default:article.author.username }} • 
+                <strong>Раздел:</strong> <a href="{% url 'knowledge:section_detail' article.section.id %}">{{ article.section.title }}</a> • 
+                <strong>Опубликовано:</strong> {{ article.published_at|date:"d.m.Y H:i" }} • 
+                <strong>Просмотров:</strong> {{ article.view_count }}
+            </div>
+            
+            {% if user.is_authenticated and user.profile.has_role == 'author' or user == article.author %}
+            <div>
+                <a href="{% url 'knowledge:edit_article' article.id %}" 
+                   class="search-button" 
+                   style="text-decoration: none; display: inline-block;">
+                    ✏️ Редактировать
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        
+        {% if article.tags.all %}
+        <div style="margin-top: 1rem;">
+            {% for tag in article.tags.all %}
+            <a href="{% url 'knowledge:articles_by_tag' tag.name %}" class="tag">{{ tag.name }}</a>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </header>
+
+    <div style="line-height: 1.8; font-size: 1.1rem;">
+        {% if article.summary %}
+        <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border-left: 4px solid #3498db;">
+            <strong>Краткое описание:</strong> {{ article.summary }}
+        </div>
+        {% endif %}
+        
+        <div style="white-space: pre-line;">{{ article.content }}</div>
+    </div>
+
+    {% if article.attachments.all %}
+    <section style="margin-top: 3rem; padding-top: 2rem; border-top: 2px solid #ecf0f1;">
+        <h3>Прикрепленные файлы</h3>
+        <div style="margin-top: 1rem;">
+            {% for attachment in article.attachments.all %}
+            <div style="display: flex; justify-content: space-between; align-items: center; 
+                       padding: 1rem; border: 1px solid #e9ecef; border-radius: 8px; 
+                       margin-bottom: 0.5rem; background: #f8f9fa;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <span style="font-size: 1.5rem;">{{ attachment.get_file_icon }}</span>
+                    <div>
+                        <strong>{{ attachment.file_name }}</strong>
+                        {% if attachment.description %}
+                        <br><span style="color: #6c757d; font-size: 0.9rem;">{{ attachment.description }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <span style="color: #6c757d; font-size: 0.9rem;">
+                        {{ attachment.file_size|filesizeformat }} • {{ attachment.file_type|upper }}
+                    </span>
+                    
+                    <div style="display: flex; gap: 0.5rem;">
+                        {% if attachment.is_image %}
+                        <a href="{% url 'knowledge:view_attachment' attachment.id %}" 
+                           target="_blank"
+                           style="padding: 0.5rem 1rem; background: #17a2b8; color: white; 
+                                  text-decoration: none; border-radius: 4px; font-size: 0.9rem;">
+                            👁️ Просмотр
+                        </a>
+                        {% endif %}
+                        
+                        {% comment %} <a href="{% url 'knowledge:download_attachment' attachment.id %}" 
+                           style="padding: 0.5rem 1rem; background: #28a745; color: white; 
+                                  text-decoration: none; border-radius: 4px; font-size: 0.9rem;">
+                            ⬇️ Скачать
+                        </a> {% endcomment %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</article>
+
+{% if related_articles %}
+<section class="card">
+    <h2>Похожие статьи</h2>
+    <ul class="article-list">
+        {% for related in related_articles %}
+        <li class="article-item">
+            <h3 style="margin-bottom: 0.5rem;">
+                <a href="{% url 'knowledge:article_detail' related.id %}" style="color: #2c3e50; text-decoration: none;">
+                    {{ related.title }}
+                </a>
+            </h3>
+            <div style="font-size: 0.9rem; color: #7f8c8d;">
+                {{ related.created_at|date:"d.m.Y" }} • Просмотров: {{ related.view_count }}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+</section>
+{% endif %}
+
+<style>
+.attachment-item {
+    transition: all 0.3s ease;
+}
+
+.attachment-item:hover {
+    background: #e9ecef !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.tag {
+    transition: all 0.3s ease;
+}
+
+.tag:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.search-button {
+    transition: all 0.3s ease;
+}
+
+.search-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+</style>
+{% endblock %}

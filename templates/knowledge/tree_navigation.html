@@ -1,0 +1,114 @@
+<div class="tree-container">
+    {% for item in sections_tree %}
+    <div class="tree-item">
+        <div class="tree-node">
+            <a href="{% url 'knowledge:section_detail' item.section.id %}" 
+               class="tree-link parent-link">
+                <span class="tree-icon">📁</span>
+                <span class="tree-text">{{ item.section.title }}</span>
+                {% if item.children %}
+                <span class="tree-arrow">▶</span>
+                {% endif %}
+            </a>
+        </div>
+        
+        {% if item.children %}
+        <div class="tree-children">
+            {% for child in item.children %}
+            <div class="tree-item">
+                <div class="tree-node">
+                    <a href="{% url 'knowledge:section_detail' child.id %}" class="tree-link child-link">
+                        <span class="tree-icon">📄</span>
+                        <span class="tree-text">{{ child.title }}</span>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+.tree-navigation {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.tree-item {
+    margin-bottom: 0.5rem;
+}
+
+.tree-node {
+    position: relative;
+}
+
+.tree-link {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    color: #2c3e50;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+}
+
+.tree-link:hover {
+    background: #3498db;
+    color: white;
+    transform: translateX(5px);
+}
+
+.tree-link.has-children {
+    font-weight: 600;
+}
+
+.tree-toggle {
+    font-size: 0.8rem;
+    transition: transform 0.3s ease;
+}
+
+.tree-children {
+    margin-top: 0.5rem;
+}
+
+.tree-children .tree-link {
+    font-weight: normal;
+    font-size: 0.9rem;
+    padding: 0.4rem 0.75rem;
+}
+
+.tree-children .tree-link:hover {
+    background: #2980b9;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Обработка раскрытия/скрытия подразделов
+    document.querySelectorAll('.tree-link.has-children').forEach(link => {
+        link.addEventListener('click', function(e) {
+            if (e.target.classList.contains('tree-link')) {
+                const children = this.parentElement.nextElementSibling;
+                const toggle = this.querySelector('.tree-toggle');
+                
+                if (children.style.display === 'none') {
+                    children.style.display = 'block';
+                    toggle.textContent = '▼';
+                } else {
+                    children.style.display = 'none';
+                    toggle.textContent = '▶';
+                }
+                
+                e.preventDefault();
+            }
+        });
+    });
+});
+</script>

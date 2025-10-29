@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Статьи с тегом "{{ tag_name }}" - База знаний{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>Статьи с тегом "{{ tag_name }}"</h1>
+    <p>
+        <a href="{% url 'knowledge:tag_cloud' %}" class="tag">← Назад к облаку тегов</a>
+    </p>
+</div>
+
+<div class="card">
+    {% if articles %}
+    <h2>Найдено статей: {{ articles.count }}</h2>
+    
+    <ul class="article-list">
+        {% for article in articles %}
+        <li class="article-item">
+            <h3 style="margin-bottom: 0.5rem;">
+                <a href="{% url 'knowledge:article_detail' article.id %}" style="color: #2c3e50; text-decoration: none;">
+                    {{ article.title }}
+                </a>
+            </h3>
+            <div style="font-size: 0.9rem; color: #7f8c8d; margin-bottom: 0.5rem;">
+                <span>Раздел: <a href="{% url 'knowledge:section_detail' article.section.id %}">{{ article.section.title }}</a></span> • 
+                <span>Автор: {{ article.author.get_full_name|default:article.author.username }}</span> • 
+                <span>{{ article.created_at|date:"d.m.Y" }}</span> • 
+                <span>Просмотров: {{ article.view_count }}</span>
+            </div>
+            {% if article.summary %}
+            <p>{{ article.summary|truncatewords:50 }}</p>
+            {% endif %}
+            <div style="margin-top: 0.5rem;">
+                {% for tag in article.tags.all %}
+                <a href="{% url 'knowledge:articles_by_tag' tag.name %}" class="tag">{{ tag.name }}</a>
+                {% endfor %}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>Нет статей с тегом "{{ tag_name }}".</p>
+    {% endif %}
+</div>
+{% endblock %}

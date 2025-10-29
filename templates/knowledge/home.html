@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}Главная - База знаний{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>Добро пожаловать в базу знаний</h1>
+    <p>Централизованная система управления корпоративными знаниями</p>
+</div>
+
+{% if root_sections %}
+<div class="card">
+    <h2>Разделы знаний</h2>
+    <div class="section-grid">
+        {% for section in root_sections %}
+        <div class="section-card">
+            <h3>
+                <a href="{% url 'knowledge:section_detail' section.id %}" style="color: #2c3e50; text-decoration: none;">
+                    {{ section.title }}
+                </a>
+            </h3>
+            {% if section.description %}
+            <p>{{ section.description|truncatewords:20 }}</p>
+            {% endif %}
+            <div style="margin-top: 1rem; color: #7f8c8d; font-size: 0.9rem;">
+                Статей: {{ section.get_articles_count }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+    <!-- Последние статьи -->
+    <div class="card">
+        <h2>Последние статьи</h2>
+        {% if recent_articles %}
+        <ul class="article-list">
+            {% for article in recent_articles %}
+            <li class="article-item">
+                <h3 style="margin-bottom: 0.5rem;">
+                    <a href="{% url 'knowledge:article_detail' article.id %}" style="color: #2c3e50; text-decoration: none;">
+                        {{ article.title }}
+                    </a>
+                </h3>
+                <div style="font-size: 0.9rem; color: #7f8c8d;">
+                    <span>В разделе: {{ article.section.title }}</span> • 
+                    <span>Автор: {{ article.author.get_full_name|default:article.author.username }}</span> • 
+                    <span>{{ article.created_at|date:"d.m.Y" }}</span>
+                </div>
+                {% if article.summary %}
+                <p style="margin-top: 0.5rem;">{{ article.summary|truncatewords:30 }}</p>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>Пока нет опубликованных статей.</p>
+        {% endif %}
+    </div>
+
+    <!-- Популярные статьи -->
+    <div class="card">
+        <h2>Популярные статьи</h2>
+        {% if popular_articles %}
+        <ul class="article-list">
+            {% for article in popular_articles %}
+            <li class="article-item">
+                <h4 style="margin-bottom: 0.3rem;">
+                    <a href="{% url 'knowledge:article_detail' article.id %}" style="color: #2c3e50; text-decoration: none;">
+                        {{ article.title }}
+                    </a>
+                </h4>
+                <div style="font-size: 0.8rem; color: #7f8c8d;">
+                    Просмотров: {{ article.view_count }}
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>Пока нет популярных статей.</p>
+        {% endif %}
+
+        <!-- Быстрые ссылки -->
+        <div style="margin-top: 2rem;">
+            <h3>Быстрый доступ</h3>
+            <ul style="list-style: none; margin-top: 1rem;">
+                <li style="margin-bottom: 0.5rem;">
+                    <a href="{% url 'knowledge:tag_cloud' %}" style="color: #3498db; text-decoration: none;">📁 Облако тегов</a>
+                </li>
+                {% if user.is_authenticated and user.profile.has_role == 'author' %}                <li style="margin-bottom: 0.5rem;">
+                    <a href="{% url 'knowledge:create_article' %}" style="color: #3498db; text-decoration: none;">✏️ Создать статью</a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

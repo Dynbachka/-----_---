@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ section.title }} - База знаний{% endblock %}
+
+{% block breadcrumb %}
+<nav class="breadcrumb">
+    <a href="{% url 'knowledge:home' %}">Главная</a>
+    {% for crumb in breadcrumbs %}
+        &rsaquo; 
+        {% if forloop.last %}
+            <span>{{ crumb.title }}</span>
+        {% else %}
+            <a href="{% url 'knowledge:section_detail' crumb.id %}">{{ crumb.title }}</a>
+        {% endif %}
+    {% endfor %}
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>{{ section.title }}</h1>
+    {% if section.description %}
+    <p>{{ section.description }}</p>
+    {% endif %}
+    
+    {% if user.is_authenticated and user.profile.has_role == 'author' %}    <div style="margin-top: 1rem;">
+        <a href="{% url 'knowledge:create_article_in_section' section.id %}" 
+           class="search-button" 
+           style="display: inline-block; text-decoration: none;">
+            ✏️ Создать статью в этом разделе
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+{% if subsections %}
+<div class="card">
+    <h2>Подразделы</h2>
+    <div class="section-grid">
+        {% for subsection in subsections %}
+        <div class="section-card">
+            <h3>
+                <a href="{% url 'knowledge:section_detail' subsection.id %}" style="color: #2c3e50; text-decoration: none;">
+                    {{ subsection.title }}
+                </a>
+            </h3>
+            {% if subsection.description %}
+            <p>{{ subsection.description|truncatewords:15 }}</p>
+            {% endif %}
+            <div style="margin-top: 1rem; color: #7f8c8d; font-size: 0.9rem;">
+                Статей: {{ subsection.get_articles_count }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="card">
+    <h2>Статьи в разделе ({{ articles.count }})</h2>
+    {% if articles %}
+    <ul class="article-list">
+        {% for article in articles %}
+        <li class="article-item">
+            <h3 style="margin-bottom: 0.5rem;">
+                <a href="{% url 'knowledge:article_detail' article.id %}" style="color: #2c3e50; text-decoration: none;">
+                    {{ article.title }}
+                </a>
+            </h3>
+            <div style="font-size: 0.9rem; color: #7f8c8d; margin-bottom: 0.5rem;">
+                <span>Автор: {{ article.author.get_full_name|default:article.author.username }}</span> • 
+                <span>{{ article.created_at|date:"d.m.Y" }}</span> • 
+                <span>Просмотров: {{ article.view_count }}</span>
+            </div>
+            {% if article.summary %}
+            <p>{{ article.summary|truncatewords:50 }}</p>
+            {% endif %}
+            {% if article.tags.all %}
+            <div style="margin-top: 0.5rem;">
+                {% for tag in article.tags.all %}
+                <a href="{% url 'knowledge:articles_by_tag' tag.name %}" class="tag">{{ tag.name }}</a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>В этом разделе пока нет статей.</p>
+    {% endif %}
+</div>
+{% endblock %}

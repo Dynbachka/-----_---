@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Облако тегов - База знаний{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>Облако тегов</h1>
+    <p>Все теги, используемые в базе знаний. Размер тега показывает его популярность.</p>
+    
+    {% if tags %}
+    <div class="tag-cloud">
+        {% for tag in tags %}
+            {% with tag_count=tag.taggit_taggeditem_items.count %}
+            <a href="{% url 'knowledge:articles_by_tag' tag.name %}" 
+               class="tag" 
+               style="font-size: {% widthratio tag_count 1 0.1|add:0.8 %}em; 
+                      background: hsl({{ forloop.counter0|add:forloop.counter0 }}, 70%, 50%);">
+                {{ tag.name }} ({{ tag_count }})
+            </a>
+            {% endwith %}
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>Пока нет тегов в системе.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Статистика тегов</h2>
+    <ul style="list-style: none;">
+        <li>Всего тегов: {{ tags.count }}</li>
+        <li>Самый популярный тег: 
+            {% with most_used=tags.first %}
+                {% if most_used %}
+                <a href="{% url 'knowledge:articles_by_tag' most_used.name %}" class="tag">
+                    {{ most_used.name }} ({{ most_used.taggit_taggeditem_items.count }})
+                </a>
+                {% endif %}
+            {% endwith %}
+        </li>
+    </ul>
+</div>
+{% endblock %}
