@@ -1,46 +1,228 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Статьи с тегом "{{ tag_name }}" - База знаний{% endblock %}
 
 {% block content %}
-<div class="card">
-    <h1>Статьи с тегом "{{ tag_name }}"</h1>
-    <p>
-        <a href="{% url 'knowledge:tag_cloud' %}" class="tag">← Назад к облаку тегов</a>
-    </p>
-</div>
+<div class="container py-5">
+    <!-- Заголовок с возвратом -->
+    <div class="mb-5 pb-4 border-bottom">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h1 class="h2 mb-2">
+                    <i class="bi bi-tag" style="color: #667eea;"></i> 
+                    <span class="text-primary">{{ tag_name }}</span>
+                </h1>
+                <p class="text-muted">Все статьи с этим тегом</p>
+            </div>
+            <a href="{% url 'knowledge:tag_cloud' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left"></i> К тегам
+            </a>
+        </div>
+    </div>
 
-<div class="card">
+    <!-- Статистика -->
+    <div class="row g-3 mb-5">
+        <div class="col-md-4">
+            <div class="card border-0 bg-light shadow-sm">
+                <div class="card-body text-center">
+                    <h3 class="h4 text-primary mb-1">{{ articles|length }}</h3>
+                    <small class="text-muted">Статей с этим тегом</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Статьи -->
     {% if articles %}
-    <h2>Найдено статей: {{ articles.count }}</h2>
-    
-    <ul class="article-list">
-        {% for article in articles %}
-        <li class="article-item">
-            <h3 style="margin-bottom: 0.5rem;">
-                <a href="{% url 'knowledge:article_detail' article.id %}" style="color: #2c3e50; text-decoration: none;">
-                    {{ article.title }}
-                </a>
-            </h3>
-            <div style="font-size: 0.9rem; color: #7f8c8d; margin-bottom: 0.5rem;">
-                <span>Раздел: <a href="{% url 'knowledge:section_detail' article.section.id %}">{{ article.section.title }}</a></span> • 
-                <span>Автор: {{ article.author.get_full_name|default:article.author.username }}</span> • 
-                <span>{{ article.created_at|date:"d.m.Y" }}</span> • 
-                <span>Просмотров: {{ article.view_count }}</span>
-            </div>
-            {% if article.summary %}
-            <p>{{ article.summary|truncatewords:50 }}</p>
-            {% endif %}
-            <div style="margin-top: 0.5rem;">
-                {% for tag in article.tags.all %}
-                <a href="{% url 'knowledge:articles_by_tag' tag.name %}" class="tag">{{ tag.name }}</a>
-                {% endfor %}
-            </div>
-        </li>
-        {% endfor %}
-    </ul>
+        <div class="articles-list">
+            {% for article in articles %}
+                <div class="card mb-4 border-0 shadow-sm hover-card" style="transition: all 0.3s ease;">
+                    <div class="card-body p-4">
+                        <!-- Заголовок -->
+                        <h5 class="card-title mb-3">
+                            <a href="{% url 'knowledge:article_detail' article.id %}" class="text-decoration-none text-dark">
+                                <i class="bi bi-file-earmark-text" style="color: #28a745;"></i>
+                                {{ article.title }}
+                            </a>
+                        </h5>
+                        
+                        <!-- Краткое описание -->
+                        {% if article.summary %}
+                            <p class="card-text text-muted mb-3">
+                                {{ article.summary|truncatewords:30 }}
+                            </p>
+                        {% endif %}
+                        
+                        <!-- Информация о статье -->
+                        <div class="row g-3 mb-3 pb-3 border-bottom text-muted small">
+                            <div class="col-auto">
+                                <i class="bi bi-folder"></i>
+                                <a href="{% url 'knowledge:section_detail' article.section.id %}" class="text-muted text-decoration-none">
+                                    {{ article.section.title }}
+                                </a>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-person"></i> 
+                                <strong>{{ article.author.first_name|default:article.author.username }}</strong>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-calendar"></i> 
+                                {{ article.created_at|date:"d.m.Y" }}
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-eye"></i> 
+                                {{ article.view_count }} просмотров
+                            </div>
+                        </div>
+                        
+                        <!-- Теги (если есть другие) -->
+                        {% if article.tags.all %}
+                            <div class="mb-3">
+                                {% for tag in article.tags.all %}
+                                    {% if tag.name != tag_name %}
+                                        <a href="{% url 'knowledge:articles_by_tag' tag.name %}" class="badge bg-light text-dark me-1 mb-1">
+                                            <i class="bi bi-tag"></i> {{ tag.name }}
+                                        </a>
+                                    {% else %}
+                                        <span class="badge bg-primary me-1 mb-1">
+                                            <i class="bi bi-tag-fill"></i> {{ tag.name }}
+                                        </span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Кнопка читать -->
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'knowledge:article_detail' article.id %}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-book"></i> Читать полностью →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Пагинация (если понадобится) -->
+        {% if is_paginated %}
+            <nav aria-label="Навигация по страницам" class="mt-5">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1">Первая</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Назад</a>
+                        </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Вперёд</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Последняя</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+
     {% else %}
-    <p>Нет статей с тегом "{{ tag_name }}".</p>
+        <!-- Нет статей -->
+        <div class="alert alert-info border-0 shadow-sm" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-info-circle me-3" style="font-size: 2rem; color: #0c5460;"></i>
+                <div>
+                    <h5 class="alert-heading mb-1">Статей не найдено</h5>
+                    <small>К сожалению, в базе знаний нет опубликованных статей с тегом "{{ tag_name }}"</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 text-center">
+            <a href="{% url 'knowledge:tag_cloud' %}" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left"></i> Вернуться к тегам
+            </a>
+            <a href="{% url 'knowledge:home' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-house"></i> На главную
+            </a>
+        </div>
     {% endif %}
 </div>
+
+<style>
+    .hover-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .hover-card:hover {
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15) !important;
+        transform: translateY(-3px);
+    }
+
+    .card-title a {
+        transition: color 0.3s ease;
+    }
+
+    .card-title a:hover {
+        color: #667eea !important;
+    }
+
+    .badge {
+        font-weight: 500;
+        padding: 0.4rem 0.7rem;
+        font-size: 0.85rem;
+    }
+
+    .btn-outline-primary {
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: #667eea;
+        border-color: #667eea;
+        transform: translateX(2px);
+    }
+
+    .articles-list {
+        animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Для мобильных */
+    @media (max-width: 768px) {
+        .card-body {
+            padding: 1.5rem !important;
+        }
+
+        .h2 {
+            font-size: 1.5rem;
+        }
+    }
+</style>
 {% endblock %}

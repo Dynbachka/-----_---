@@ -1,102 +1,205 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Создать статью - База знаний{% endblock %}
+{% block title %}Создание статьи{% endblock %}
 
 {% block content %}
-<div class="card">
-    <h1>Создать новую статью</h1>
-    
-    {% if section %}
-    <div class="breadcrumb">
-        Статья будет создана в разделе: <strong>{{ section.title }}</strong>
-    </div>
-    {% endif %}
-    
-    {% if messages %}
-    <div style="margin-bottom: 1.5rem;">
-        {% for message in messages %}
-        <div style="padding: 1rem; border-radius: 4px; 
-                   {% if message.tags == 'error' %}background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;
-                   {% else %}background: #d4edda; color: #155724; border: 1px solid #c3e6cb;{% endif %}">
-            {{ message }}
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-    
-    <form method="post" style="margin-top: 2rem;">
-        {% csrf_token %}
-        
-        {% if form.non_field_errors %}
-        <div style="color: #dc3545; margin-bottom: 1rem;">
-            {{ form.non_field_errors }}
-        </div>
-        {% endif %}
-        
-        {% for field in form %}
-        <div style="margin-bottom: 1.5rem;">
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">
-                {{ field.label }}
-                {% if field.field.required %}<span style="color: #dc3545;">*</span>{% endif %}
-            </label>
-            
-            {{ field }}
-            
-            {% if field.help_text %}
-            <div style="font-size: 0.8rem; color: #6c757d; margin-top: 0.25rem;">
-                {{ field.help_text }}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Заголовок -->
+            <div class="mb-4">
+                <h1 class="h2 mb-2">
+                    <i class="bi bi-pencil-square"></i> Создание новой статьи
+                </h1>
+                <p class="text-muted">Заполните форму ниже, чтобы создать новую статью в базе знаний</p>
             </div>
-            {% endif %}
-            
-            {% if field.errors %}
-            <div style="color: #dc3545; font-size: 0.9rem; margin-top: 0.25rem;">
-                {{ field.errors }}
-            </div>
-            {% endif %}
-        </div>
-        {% endfor %}
-        
-        <div style="display: flex; gap: 1rem;">
-            <button type="submit" class="search-button" style="border: none; cursor: pointer;">
-                💾 Сохранить статью
-            </button>
-            <a href="{% if section %}{% url 'knowledge:section_detail' section.id %}{% else %}{% url 'knowledge:home' %}{% endif %}" 
-               class="search-button" 
-               style="background: #95a5a6; text-decoration: none; display: inline-block;">
-                ❌ Отмена
-            </a>
-        </div>
-    </form>
-</div>
 
-<div class="card">
-    <h3>Советы по созданию статей:</h3>
-    <ul style="margin-left: 1.5rem;">
-        <li>Используйте четкие и понятные заголовки</li>
-        <li>Добавляйте теги для лучшей категоризации</li>
-        <li>Пишите краткое описание - оно поможет пользователям быстро понять содержание</li>
-        <li>Используйте черновик для работы над статьей перед публикацией</li>
-    </ul>
+            <!-- Хлебные крошки -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb bg-light px-3 py-2 rounded">
+                    <li class="breadcrumb-item"><a href="{% url 'knowledge:home' %}">Главная</a></li>
+                    <li class="breadcrumb-item active">Создание статьи</li>
+                </ol>
+            </nav>
+
+            <!-- Форма создания статьи -->
+            <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                {% csrf_token %}
+
+                <!-- Сообщения об ошибках -->
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <strong>Ошибка!</strong>
+                        {% for error in form.non_field_errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endif %}
+
+                <!-- Раздел -->
+                <div class="mb-4">
+                    <label for="{{ form.section.id_for_label }}" class="form-label fw-bold">
+                        {{ form.section.label }}
+                        <span class="text-danger">*</span>
+                    </label>
+                    {{ form.section }}
+                    {% if form.section.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.section.errors.0 }}
+                        </div>
+                    {% endif %}
+                    <small class="text-muted d-block mt-1">Выберите раздел для размещения статьи</small>
+                </div>
+
+                <!-- Заголовок -->
+                <div class="mb-4">
+                    <label for="{{ form.title.id_for_label }}" class="form-label fw-bold">
+                        {{ form.title.label }}
+                        <span class="text-danger">*</span>
+                    </label>
+                    {{ form.title }}
+                    {% if form.title.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.title.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Краткое описание -->
+                <div class="mb-4">
+                    <label for="{{ form.summary.id_for_label }}" class="form-label fw-bold">
+                        {{ form.summary.label }}
+                    </label>
+                    {{ form.summary }}
+                    {% if form.summary.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.summary.errors.0 }}
+                        </div>
+                    {% endif %}
+                    <small class="text-muted d-block mt-1">Краткое описание статьи для предпросмотра (необязательно)</small>
+                </div>
+
+                <!-- Содержание -->
+                <div class="mb-4">
+                    <label for="{{ form.content.id_for_label }}" class="form-label fw-bold">
+                        {{ form.content.label }}
+                        <span class="text-danger">*</span>
+                    </label>
+                    {{ form.content }}
+                    {% if form.content.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.content.errors.0 }}
+                        </div>
+                    {% endif %}
+                    <small class="text-muted d-block mt-1">Основное содержание статьи. Поддерживается HTML форматирование</small>
+                </div>
+
+                <!-- Теги -->
+                <div class="mb-4">
+                    <label for="{{ form.tags.id_for_label }}" class="form-label fw-bold">
+                        {{ form.tags.label }}
+                    </label>
+                    {{ form.tags }}
+                    {% if form.tags.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.tags.errors.0 }}
+                        </div>
+                    {% endif %}
+                    <small class="text-muted d-block mt-1">{{ form.tags.help_text }}</small>
+                </div>
+
+                <!-- Прикрепить файлы -->
+                <div class="mb-4">
+                    <label for="{{ form.attachments.id_for_label }}" class="form-label fw-bold">
+                        {{ form.attachments.label }}
+                    </label>
+                    <div class="upload-area border-2 border-dashed rounded p-4 bg-light" id="uploadArea">
+                        <input type="file" id="{{ form.attachments.id_for_label }}" name="{{ form.attachments.name }}" multiple class="form-control">
+                        <p class="text-muted text-center mb-0 mt-3">
+                            <i class="bi bi-cloud-arrow-up"></i><br>
+                            Перетащите файлы сюда или нажмите для выбора
+                        </p>
+                    </div>
+                    {% if form.attachments.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.attachments.errors.0 }}
+                        </div>
+                    {% endif %}
+                    <small class="text-muted d-block mt-1">{{ form.attachments.help_text }}</small>
+                </div>
+
+                <!-- Статус -->
+                <div class="mb-4">
+                    <label for="{{ form.status.id_for_label }}" class="form-label fw-bold">
+                        {{ form.status.label }}
+                        <span class="text-danger">*</span>
+                    </label>
+                    {{ form.status }}
+                    {% if form.status.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.status.errors.0 }}
+                        </div>
+                    {% endif %}
+                    <small class="text-muted d-block mt-1">Выберите статус публикации статьи</small>
+                </div>
+
+                <!-- Кнопки действия -->
+                <div class="d-flex gap-2 pt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-check-circle"></i> Создать статью
+                    </button>
+                    <a href="{% url 'knowledge:home' %}" class="btn btn-outline-secondary btn-lg">
+                        <i class="bi bi-x-circle"></i> Отмена
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 <style>
-.form-control {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
-}
-
-.form-control:focus {
-    border-color: #3498db;
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-}
-
-textarea.form-control {
-    resize: vertical;
-    min-height: 100px;
-}
+    .upload-area {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .upload-area:hover {
+        background-color: #e9ecef !important;
+        border-color: #0d6efd !important;
+    }
+    
+    .upload-area.dragover {
+        background-color: #d9e3f7;
+        border-color: #0d6efd !important;
+    }
+    
+    .upload-area input[type="file"] {
+        display: none;
+    }
 </style>
+
+<script>
+    // Drag and drop для файлов
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = uploadArea.querySelector('input[type="file"]');
+    
+    uploadArea.addEventListener('click', () => fileInput.click());
+    
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+    
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        fileInput.files = e.dataTransfer.files;
+    });
+</script>
 {% endblock %}

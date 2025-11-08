@@ -1,43 +1,233 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Облако тегов - База знаний{% endblock %}
 
 {% block content %}
-<div class="card">
-    <h1>Облако тегов</h1>
-    <p>Все теги, используемые в базе знаний. Размер тега показывает его популярность.</p>
-    
-    {% if tags %}
-    <div class="tag-cloud">
-        {% for tag in tags %}
-            {% with tag_count=tag.taggit_taggeditem_items.count %}
-            <a href="{% url 'knowledge:articles_by_tag' tag.name %}" 
-               class="tag" 
-               style="font-size: {% widthratio tag_count 1 0.1|add:0.8 %}em; 
-                      background: hsl({{ forloop.counter0|add:forloop.counter0 }}, 70%, 50%);">
-                {{ tag.name }} ({{ tag_count }})
-            </a>
-            {% endwith %}
-        {% endfor %}
+<div class="container py-5">
+    <!-- Заголовок -->
+    <div class="mb-5">
+        <h1 class="h2 mb-2">
+            <i class="bi bi-tags"></i> Облако тегов
+        </h1>
+        <p class="text-muted">Быстро найдите информацию по интересующей вас теме</p>
     </div>
+
+    <!-- Статистика -->
+    <div class="row g-3 mb-5">
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 bg-light">
+                <div class="card-body text-center">
+                    <h3 class="card-title h4 text-primary mb-1">{{ total_tags }}</h3>
+                    <small class="text-muted">Всего тегов</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 bg-light">
+                <div class="card-body text-center">
+                    <h3 class="card-title h4 text-success mb-1">{{ total_uses }}</h3>
+                    <small class="text-muted">Использований</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Фильтры и поиск -->
+    <div class="card border-0 shadow-sm mb-5 p-4">
+        <form method="get" action="{% url 'knowledge:tag_cloud' %}" class="row g-3">
+            <!-- Поиск -->
+            <div class="col-md-6">
+                <label class="form-label">
+                    <i class="bi bi-search"></i> Поиск по тегам
+                </label>
+                <input type="text" name="search" class="form-control" placeholder="Начните вводить название тега..." value="{{ search_query }}">
+            </div>
+
+            <!-- Сортировка -->
+            <div class="col-md-6">
+                <label class="form-label">
+                    <i class="bi bi-sort-down"></i> Сортировка
+                </label>
+                <select name="sort" class="form-select">
+                    <option value="popular" {% if current_sort == 'popular' %}selected{% endif %}>
+                        По популярности (по убыванию)
+                    </option>
+                    <option value="name" {% if current_sort == 'name' %}selected{% endif %}>
+                        По названию (А-Я)
+                    </option>
+                    <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>
+                        Новые теги
+                    </option>
+                </select>
+            </div>
+
+            <!-- Кнопки -->
+            <div class="col-12 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search"></i> Найти
+                </button>
+                <a href="{% url 'knowledge:tag_cloud' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-clockwise"></i> Сбросить
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Облако тегов -->
+    {% if tags %}
+        <div class="mb-5">
+            <h5 class="mb-4">
+                <i class="bi bi-collection"></i>
+                {% if search_query %}
+                    Результаты поиска по "{{ search_query }}"
+                {% else %}
+                    Все теги
+                {% endif %}
+                <span class="badge bg-primary">{{ tags|length }}</span>
+            </h5>
+
+            <!-- Список тегов с информацией -->
+            <div class="row g-3">
+                {% for tag in tags %}
+                    <div class="col-md-6 col-lg-4">
+                        <a href="{% url 'knowledge:articles_by_tag' tag.name %}" class="text-decoration-none">
+                            <div class="card h-100 border-0 shadow-sm hover-card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="card-title text-dark mb-0">
+                                            <i class="bi bi-tag text-primary"></i>
+                                            {{ tag.name }}
+                                        </h6>
+                                        <span class="badge bg-primary">
+                                            {{ tag.num_times }}
+                                        </span>
+                                    </div>
+                                    
+                                    <!-- Шкала популярности -->
+                                    <div class="progress" style="height: 4px;">
+                                        {% widthratio tag.num_times 100 100 as progress_width %}
+                                        <div class="progress-bar" role="progressbar" 
+                                             style="width: {% if progress_width > 100 %}100{% else %}{{ progress_width }}{% endif %}%">
+                                        </div>
+                                    </div>
+                                    
+                                    <small class="text-muted d-block mt-2">
+                                        Статей: <strong>{{ tag.num_times }}</strong>
+                                    </small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Пагинация -->
+            {% if is_paginated %}
+                <nav aria-label="Навигация по тегам" class="mt-5">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?search={{ search_query }}&sort={{ current_sort }}&page=1">
+                                    Первая
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?search={{ search_query }}&sort={{ current_sort }}&page={{ page_obj.previous_page_number }}">
+                                    Назад
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?search={{ search_query }}&sort={{ current_sort }}&page={{ num }}">
+                                        {{ num }}
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?search={{ search_query }}&sort={{ current_sort }}&page={{ page_obj.next_page_number }}">
+                                    Вперёд
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?search={{ search_query }}&sort={{ current_sort }}&page={{ page_obj.paginator.num_pages }}">
+                                    Последняя
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        </div>
+
+        <!-- Советы по использованию -->
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <h6 class="alert-heading">
+                <i class="bi bi-lightbulb"></i> Советы по использованию
+            </h6>
+            <ul class="mb-0 small">
+                <li>Нажмите на любой тег, чтобы увидеть все статьи с этим тегом</li>
+                <li>Используйте поиск, чтобы найти нужный тег</li>
+                <li>Сортируйте теги по популярности или названию</li>
+                <li>Число в значке показывает количество статей с этим тегом</li>
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
+        </div>
+
     {% else %}
-    <p>Пока нет тегов в системе.</p>
+        <!-- Нет результатов -->
+        <div class="alert alert-warning" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-search me-3" style="font-size: 2rem;"></i>
+                <div>
+                    <h5 class="alert-heading mb-1">Теги не найдены</h5>
+                    <small>
+                        {% if search_query %}
+                            По запросу "{{ search_query }}" нет тегов. Попробуйте другой запрос.
+                        {% else %}
+                            В базе знаний пока нет тегов.
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        {% if search_query %}
+            <div class="mt-4 text-center">
+                <a href="{% url 'knowledge:tag_cloud' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left"></i> Вернуться ко всем тегам
+                </a>
+            </div>
+        {% endif %}
     {% endif %}
 </div>
 
-<div class="card">
-    <h2>Статистика тегов</h2>
-    <ul style="list-style: none;">
-        <li>Всего тегов: {{ tags.count }}</li>
-        <li>Самый популярный тег: 
-            {% with most_used=tags.first %}
-                {% if most_used %}
-                <a href="{% url 'knowledge:articles_by_tag' most_used.name %}" class="tag">
-                    {{ most_used.name }} ({{ most_used.taggit_taggeditem_items.count }})
-                </a>
-                {% endif %}
-            {% endwith %}
-        </li>
-    </ul>
-</div>
+<style>
+    .hover-card {
+        transition: all 0.3s ease;
+    }
+    
+    .hover-card:hover {
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15) !important;
+        transform: translateY(-3px);
+    }
+    
+    .progress {
+        background-color: #e9ecef;
+    }
+    
+    .progress-bar {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    }
+</style>
 {% endblock %}

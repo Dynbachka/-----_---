@@ -15,30 +15,29 @@ router.register(r'api/userprofiles', api.UserProfileViewSet)
 urlpatterns = [
     # Главная страница
     path('', views.home, name='home'),
-    
+
     # Разделы
     path('section/<int:section_id>/', views.section_detail, name='section_detail'),
-    
+
     # Статьи
     path('article/<int:article_id>/', views.article_detail, name='article_detail'),
-    
-    # Работа с файлами
-    path('attachment/download/<int:attachment_id>/', views.download_attachment, name='download_attachment'),
-    path('attachment/view/<int:attachment_id>/', views.view_attachment, name='view_attachment'),
-    
-    # Поиск
-    path('search/', views.search, name='search'),
-    
-    # Теги
-    path('tag/<str:tag_name>/', views.articles_by_tag, name='articles_by_tag'),
-    path('tags/', views.tag_cloud, name='tag_cloud'),
-    
-    # Создание и редактирование (требуют авторизации)
+
+    # Создание и редактирование статей
     path('article/create/', views.create_article, name='create_article'),
     path('article/create/<int:section_id>/', views.create_article, name='create_article_in_section'),
     path('article/edit/<int:article_id>/', views.edit_article, name='edit_article'),
-    
-    
+
+    # Работа с файлами
+    path('attachment/download/<int:attachment_id>/', views.download_attachment, name='download_attachment'),
+    path('attachment/view/<int:attachment_id>/', views.view_attachment, name='view_attachment'),
+
+    # Поиск
+    path('search/', views.search, name='search'),
+
+    # Теги
+    path('tag/<str:tag_name>/', views.articles_by_tag, name='articles_by_tag'),
+    path('tags/', views.tag_cloud, name='tag_cloud'),
+]
     ##
     ##   дял апи
     ##
@@ -49,7 +48,7 @@ urlpatterns = [
     # path('api/articles/tag/<str:tag_name>/', api.articles_by_tag, name='api_articles_by_tag'),
     
     
-]
+
 
 # urlpatterns = [
 #     path('', include(router.urls)),
