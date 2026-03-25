@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Все разделы - База знаний{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Заголовок -->
+    <div class="mb-5">
+        <h1 class="h2 mb-2">
+            <i class="bi bi-diagram-3" style="color: #667eea;"></i> Все разделы
+        </h1>
+        <p class="text-muted">Просмотрите всю структуру базы знаний и найдите нужный раздел</p>
+    </div>
+
+    <!-- Поиск по разделам -->
+    <div class="card border-0 shadow-sm mb-5 p-4">
+        <form method="get" action="{% url 'knowledge:all_sections' %}" class="row g-3">
+            <div class="col-md-8">
+                <label class="form-label">
+                    <i class="bi bi-search"></i> Поиск по разделам
+                </label>
+                <input type="text" name="search" class="form-control" placeholder="Введите название или описание раздела..." value="{{ search_query }}">
+            </div>
+            <div class="col-md-4 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1">
+                    <i class="bi bi-search"></i> Найти
+                </button>
+                <a href="{% url 'knowledge:all_sections' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Информация о количестве -->
+    <div class="alert alert-info mb-4">
+        <i class="bi bi-info-circle"></i>
+        {% if search_query %}
+            Найдено <strong>{{ sections_count }}</strong> раздел(ов) по запросу "{{ search_query }}"
+        {% else %}
+            Всего разделов в базе знаний: <strong>{{ sections_count }}</strong>
+        {% endif %}
+    </div>
+
+    <!-- Результаты поиска (если поиск активен) -->
+    {% if search_query and all_sections_list %}
+        <div class="mb-5">
+            <h3 class="h5 mb-3">Результаты поиска:</h3>
+            <div class="row g-3">
+                {% for section in all_sections_list %}
+                    <div class="col-md-6 col-lg-4">
+                        <a href="{% url 'knowledge:section_detail' section.id %}" class="text-decoration-none">
+                            <div class="card h-100 border-0 shadow-sm hover-card">
+                                <div class="card-body">
+                                    <h6 class="card-title text-dark">
+                                        <i class="bi bi-folder text-primary"></i>
+                                        {{ section.title }}
+                                    </h6>
+                                    <p class="card-text text-muted small mb-2">
+                                        {{ section.description|truncatewords:15 }}
+                                    </p>
+                                    <small class="text-muted d-block">
+                                        <i class="bi bi-file-earmark"></i> 
+                                        {{ section.article_set.count }} статей
+                                    </small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Древовидная структура разделов -->
+    {% if show_all %}
+        <div class="mb-5">
+            <h3 class="h5 mb-3">
+                <i class="bi bi-diagram-2"></i> Структура разделов
+            </h3>
+            <div class="tree-structure">
+                {% for section in root_sections %}
+                    <div class="tree-item tree-level-0">
+                        <div class="tree-item-content">
+                            <a href="{% url 'knowledge:section_detail' section.id %}">
+                                <i class="bi bi-folder tree-item-icon"></i>
+                                <strong>{{ section.title }}</strong>
+                                <span class="tree-item-badge">{{ section.article_set.count }}</span>
+                            </a>
+                        </div>
+                        
+                        {% if section.section_set.all %}
+                            <div style="margin-top: 0.5rem;">
+                                {% for subsection in section.section_set.all %}
+                                    <div class="tree-item tree-level-1">
+                                        <div class="tree-item-content">
+                                            <a href="{% url 'knowledge:section_detail' subsection.id %}">
+                                                <i class="bi bi-folder tree-item-icon"></i>
+                                                <strong>{{ subsection.title }}</strong>
+                                                <span class="tree-item-badge">{{ subsection.article_set.count }}</span>
+                                            </a>
+                                        </div>
+                                        
+                                        {% if subsection.section_set.all %}
+                                            <div style="margin-top: 0.5rem;">
+                                                {% for subsubsection in subsection.section_set.all %}
+                                                    <div class="tree-item tree-level-2">
+                                                        <div class="tree-item-content">
+                                                            <a href="{% url 'knowledge:section_detail' subsubsection.id %}">
+                                                                <i class="bi bi-folder tree-item-icon"></i>
+                                                                <strong>{{ subsubsection.title }}</strong>
+                                                                <span class="tree-item-badge">{{ subsubsection.article_set.count }}</span>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Если ничего не найдено -->
+    {% if search_query and not all_sections_list %}
+        <div class="alert alert-warning" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-search me-3" style="font-size: 2rem;"></i>
+                <div>
+                    <h5 class="alert-heading mb-1">Разделы не найдены</h5>
+                    <small>По запросу "{{ search_query }}" нет разделов. Попробуйте другой поиск.</small>
+                </div>
+            </div>
+        </div>
+        <div class="mt-4 text-center">
+            <a href="{% url 'knowledge:all_sections' %}" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left"></i> Вернуться ко всем разделам
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .hover-card {
+        transition: all 0.3s ease;
+    }
+    
+    .hover-card:hover {
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15) !important;
+        transform: translateY(-3px);
+    }
+
+    .tree-structure {
+        background-color: #f9f9f9;
+        border: 1px solid #e0e0e0;
+        border-radius: 0.5rem;
+        padding: 1rem;
+    }
+
+    .tree-item {
+        margin: 0.5rem 0;
+    }
+
+    .tree-item-content {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        border-radius: 0.375rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .tree-item-content:hover {
+        background-color: #f0f0f0;
+        color: #667eea;
+    }
+
+    .tree-item-content a {
+        text-decoration: none;
+        color: inherit;
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .tree-level-1 .tree-item-content {
+        margin-left: 1.5rem;
+    }
+
+    .tree-level-2 .tree-item-content {
+        margin-left: 3rem;
+    }
+
+    .tree-item-icon {
+        color: #667eea;
+    }
+
+    .tree-item-badge {
+        background-color: #667eea;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-left: auto;
+    }
+</style>
+{% endblock %}

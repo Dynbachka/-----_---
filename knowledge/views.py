@@ -36,6 +36,42 @@ def home(request):
     return render(request, 'knowledge/home.html', context)
 
 
+def all_sections(request):
+    """Страница со всеми разделами в древовидной форме с поиском"""
+    search_query = request.GET.get('search', '').strip()
+    
+    if search_query:
+        # Поиск по названию и описанию раздела
+        sections = Section.objects.filter(
+            Q(title__icontains=search_query) | Q(description__icontains=search_query),
+            is_active=True
+        ).order_by('title')
+        show_all = False
+    else:
+        # Показываем все разделы
+        sections = Section.objects.filter(is_active=True).order_by('title')
+        show_all = True
+    
+    # Получаем только корневые разделы (для древовидной структуры)
+    root_sections = Section.objects.filter(parent__isnull=True, is_active=True).order_by('title')
+    
+    # Если есть поиск, показываем все найденные разделы
+    if search_query:
+        all_sections_list = sections
+    else:
+        all_sections_list = None
+    
+    context = {
+        'root_sections': root_sections,
+        'all_sections_list': all_sections_list,
+        'search_query': search_query,
+        'sections_count': sections.count() if search_query else Section.objects.filter(is_active=True).count(),
+        'show_all': show_all,
+    }
+    
+    return render(request, 'knowledge/all_sections.html', context)
+
+
 def section_detail(request, section_id):
     """Детальная страница раздела с пагинацией и сортировкой"""
     section = get_object_or_404(Section, id=section_id, is_active=True)
@@ -57,7 +93,7 @@ def section_detail(request, section_id):
         articles = articles.order_by('-created_at')
     
     # Пагинация
-    paginator = Paginator(articles, 10)  # 10 статей на странице
+    paginator = Paginator(articles, 10)
     page_number = request.GET.get('page')
     
     try:
@@ -77,7 +113,7 @@ def section_detail(request, section_id):
     context = {
         'section': section,
         'subsections': subsections,
-        'articles': page_obj.object_list,  # Статьи на текущей странице
+        'articles': page_obj.object_list,
         'page_obj': page_obj,
         'is_paginated': page_obj.has_other_pages(),
         'breadcrumbs': breadcrumbs,
@@ -129,13 +165,11 @@ def search(request):
     page_obj = None
     
     if query:
-        # Полнотекстовый поиск
         results = Article.objects.filter(status='published').annotate(
             search=SearchVector('title', weight='A') + SearchVector('content', weight='B') + SearchVector('summary', weight='C')
         ).filter(search=query).select_related('section', 'author').order_by('-created_at')
         
-        # Пагинация результатов
-        paginator = Paginator(results, 20)  # 20 результатов на странице
+        paginator = Paginator(results, 20)
         page_number = request.GET.get('page')
         
         try:
@@ -161,8 +195,7 @@ def articles_by_tag(request, tag_name):
         status='published'
     ).select_related('section', 'author').order_by('-created_at')
     
-    # Пагинация
-    paginator = Paginator(articles, 15)  # 15 статей на странице
+    paginator = Paginator(articles, 15)
     page_number = request.GET.get('page')
     
     try:
@@ -186,27 +219,23 @@ def tag_cloud(request):
     """Облако тегов - показывает популярные теги с фильтрацией и поиском"""
     from taggit.models import Tag
     
-    # Базовый запрос
     tags = Tag.objects.annotate(
         num_times=Count('taggit_taggeditem_items')
     ).filter(num_times__gt=0).order_by('-num_times')
     
-    # Поиск по названию тега
     search_query = request.GET.get('search', '').strip()
     if search_query:
         tags = tags.filter(name__icontains=search_query)
     
-    # Сортировка
     sort = request.GET.get('sort', 'popular')
     if sort == 'name':
         tags = tags.order_by('name')
     elif sort == 'newest':
-        tags = tags.order_by('-id')  # Новые теги в конце
-    else:  # popular
+        tags = tags.order_by('-id')
+    else:
         tags = tags.order_by('-num_times')
     
-    # Пагинация
-    paginator = Paginator(tags, 20)  # 20 тегов на странице
+    paginator = Paginator(tags, 20)
     page_number = request.GET.get('page')
     
     try:
@@ -216,7 +245,6 @@ def tag_cloud(request):
     except EmptyPage:
         page_obj = paginator.page(paginator.num_pages)
     
-    # Статистика
     all_tags = Tag.objects.annotate(num_times=Count('taggit_taggeditem_items')).filter(num_times__gt=0)
     total_tags = all_tags.count()
     total_uses = sum([tag.num_times for tag in all_tags])

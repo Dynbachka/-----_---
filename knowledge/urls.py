@@ -16,6 +16,7 @@ urlpatterns = [
     # Главная страница
     path('', views.home, name='home'),
 
+    path('sections/', views.all_sections, name='all_sections'),
     # Разделы
     path('section/<int:section_id>/', views.section_detail, name='section_detail'),
 
@@ -37,6 +38,10 @@ urlpatterns = [
     # Теги
     path('tag/<str:tag_name>/', views.articles_by_tag, name='articles_by_tag'),
     path('tags/', views.tag_cloud, name='tag_cloud'),
+    
+    # Файлы
+    path('attachment/<int:attachment_id>/download/', views.download_attachment, name='download_attachment'),
+    path('attachment/<int:attachment_id>/view/', views.view_attachment, name='view_attachment')
 ]
     ##
     ##   дял апи

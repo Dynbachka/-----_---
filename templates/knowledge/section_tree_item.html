@@ -1,0 +1,19 @@
+{% if section.section_set.all %}
+    <div class="section-header">
+        <div class="section-toggle collapsed">
+            <i class="bi bi-chevron-right"></i>
+        </div>
+        <i class="bi bi-folder section-icon"></i>
+        <span class="section-title">{{ section.title }}</span>
+        <span class="section-badge">{{ section.article_set.count }}</span>
+    </div>
+    <div class="section-content">
+        <!-- ... -->
+    </div>
+{% else %}
+    <a href="{% url 'knowledge:section_detail' section.id %}" class="section-header section-link">
+        <i class="bi bi-folder section-icon"></i>
+        <span class="section-title">{{ section.title }}</span>
+        <span class="section-badge">{{ section.article_set.count }}</span>
+    </a>
+{% endif %}

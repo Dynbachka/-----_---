@@ -40,7 +40,7 @@ class ArticleForm(forms.ModelForm):
     
     class Meta:
         model = Article
-        fields = ['title', 'summary', 'content', 'section', 'status']
+        fields = ['title', 'summary', 'content', 'section', 'status', 'tags']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control form-control-lg',
