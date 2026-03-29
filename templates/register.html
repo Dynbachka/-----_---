@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}Регистрация - База знаний{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <!-- Делаем карточку чуть шире для красоты -->
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4 p-md-5">
+                    <h3 class="text-center mb-4">Регистрация</h3>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Перебираем все поля формы -->
+                        {% for field in form %}
+                            <div class="mb-3">
+                                <!-- Лейбл над полем, жирным шрифтом -->
+                                <label for="{{ field.id_for_label }}" class="form-label fw-bold">{{ field.label }}</label>
+                                
+                                <!-- Само поле (получит form-control из forms.py) -->
+                                {{ field }}
+                                
+                                <!-- Текст с подсказкой (например, требования к паролю) -->
+                                {% if field.help_text %}
+                                    <div class="form-text small text-muted mt-1">{{ field.help_text|safe }}</div>
+                                {% endif %}
+                                
+                                <!-- Вывод ошибок -->
+                                {% if field.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ field.errors|striptags }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                        
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary py-2">Создать аккаунт</button>
+                        </div>
+                    </form>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="text-center mt-3">
+                        <p class="text-muted mb-2">Уже есть аккаунт?</p>
+                        <!-- ИЗМЕНЕНО: Добавлено knowledge:login -->
+                        <a href="{% url 'knowledge:login' %}" class="btn btn-outline-primary w-100 py-2">Войти</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

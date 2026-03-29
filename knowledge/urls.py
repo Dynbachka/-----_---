@@ -3,6 +3,9 @@ from . import views
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import api
+from django.urls import path
+from .views import RegisterUserView, CustomLoginView
+from django.contrib.auth.views import LogoutView
 
 app_name = 'knowledge'
 
@@ -41,7 +44,11 @@ urlpatterns = [
     
     # Файлы
     path('attachment/<int:attachment_id>/download/', views.download_attachment, name='download_attachment'),
-    path('attachment/<int:attachment_id>/view/', views.view_attachment, name='view_attachment')
+    path('attachment/<int:attachment_id>/view/', views.view_attachment, name='view_attachment'),
+    
+    path('login/', CustomLoginView.as_view(), name='login'),
+    path('logout/', LogoutView.as_view(next_page='knowledge:home'), name='logout'),
+    path('register/', RegisterUserView.as_view(), name='register'),
 ]
     ##
     ##   дял апи

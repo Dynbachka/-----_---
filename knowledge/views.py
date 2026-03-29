@@ -7,6 +7,11 @@ from django.http import FileResponse, Http404
 from .models import Section, Article, UserProfile, Attachment
 from .forms import ArticleCreateForm, ArticleEditForm
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.contrib.auth.views import LoginView, LogoutView
+from django.urls import reverse_lazy
+from django.views.generic import CreateView
+from django.contrib.auth import login
+from .forms import CustomUserCreationForm, CustomAuthenticationForm
 
 
 def is_admin_or_staff(user):
@@ -356,3 +361,20 @@ def view_attachment(request, attachment_id):
         return response
     else:
         return download_attachment(request, attachment_id)
+    
+class RegisterUserView(CreateView):
+    form_class = CustomUserCreationForm
+    template_name = 'register.html'
+    success_url = reverse_lazy('knowledge:home')
+
+    def form_valid(self, form):
+        user = form.save()
+        login(self.request, user) # Автоматически логиним после регистрации
+        return super().form_valid(form)
+
+class CustomLoginView(LoginView):
+    template_name = 'login.html'
+    form_class = CustomAuthenticationForm # Обязательно укажите эту строчку!
+    
+    def get_success_url(self):
+        return reverse_lazy('knowledge:home')
