@@ -12,6 +12,15 @@ from django.urls import reverse_lazy
 from django.views.generic import CreateView
 from django.contrib.auth import login
 from .forms import CustomUserCreationForm, CustomAuthenticationForm
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+from django.views.generic import UpdateView
+from .forms import UserProfileForm
+from django.views.generic import UpdateView
+from .models import UserProfile
+
+
+
 
 
 def is_admin_or_staff(user):
@@ -378,3 +387,25 @@ class CustomLoginView(LoginView):
     
     def get_success_url(self):
         return reverse_lazy('knowledge:home')
+    
+
+@method_decorator(login_required(login_url='knowledge:login'), name='dispatch')
+class ProfileView(UpdateView):
+    model = UserProfile
+    form_class = UserProfileForm
+    template_name = 'profile.html'
+    success_url = reverse_lazy('knowledge:profile')
+
+    def get_object(self, queryset=None):
+        # Получаем или создаём профиль для текущего пользователя
+        profile, created = UserProfile.objects.get_or_create(user=self.request.user)
+        return profile
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Профиль успешно обновлён!')
+        return super().form_valid(form)

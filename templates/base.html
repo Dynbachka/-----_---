@@ -361,6 +361,12 @@
                 {% endif %}
                 <!-- ИЗМЕНЕНО: Ссылка на выход -->
                 <li>
+                    <a class="dropdown-item" href="{% url 'knowledge:profile' %}">
+                        <i class="bi bi-person-lines-fill"></i> Профиль
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
                     <form action="{% url 'knowledge:logout' %}" method="post" style="display: inline;">
                         {% csrf_token %}
                         <button type="submit" class="dropdown-item"><i class="bi bi-box-arrow-right"></i> Выход</button>

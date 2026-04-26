@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Профиль — {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+
+                    <!-- Шапка профиля -->
+                    <div class="d-flex align-items-center mb-4">
+                        {% if object.avatar %}
+                            <img src="{{ object.avatar.url }}" alt="Аватар"
+                                 class="rounded-circle me-3"
+                                 style="width:72px;height:72px;object-fit:cover;">
+                        {% else %}
+                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3"
+                                 style="width:72px;height:72px;">
+                                <i class="bi bi-person-fill text-white fs-2"></i>
+                            </div>
+                        {% endif %}
+                        <div>
+                            <h4 class="mb-0">{{ user.get_full_name|default:user.username }}</h4>
+                            <small class="text-muted">@{{ user.username }}</small>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Форма редактирования -->
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Имя</label>
+                                {{ form.first_name }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Фамилия</label>
+                                {{ form.last_name }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            {{ form.email }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">О себе</label>
+                            {{ form.bio }}
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Аватар</label>
+                            {{ form.avatar }}
+                            {% if object.avatar %}
+                                <div class="mt-2">
+                                    <small class="text-muted">Текущий файл: {{ object.avatar.name }}</small>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-1"></i> Сохранить изменения
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -6,6 +6,8 @@ from . import api
 from django.urls import path
 from .views import RegisterUserView, CustomLoginView
 from django.contrib.auth.views import LogoutView
+from .views import ProfileView
+
 
 app_name = 'knowledge'
 
@@ -46,9 +48,13 @@ urlpatterns = [
     path('attachment/<int:attachment_id>/download/', views.download_attachment, name='download_attachment'),
     path('attachment/<int:attachment_id>/view/', views.view_attachment, name='view_attachment'),
     
+    # Авторизация 
     path('login/', CustomLoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(next_page='knowledge:home'), name='logout'),
     path('register/', RegisterUserView.as_view(), name='register'),
+    
+    # Авторизация 
+    path('profile/', ProfileView.as_view(), name='profile'),
 ]
     ##
     ##   дял апи
