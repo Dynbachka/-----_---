@@ -58,11 +58,11 @@ class ArticleForm(forms.ModelForm):
                 'placeholder': 'Краткое описание статьи (необязательно)'
             }),
             'content': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 15,
-                'placeholder': 'Содержание статьи',
-                'required': True
-            }),
+    'class': 'form-control markdown-editor', # Добавили класс markdown-editor
+    'rows': 15,
+    'placeholder': 'Поддерживается разметка Markdown...',
+    'required': True
+}),
             'section': forms.Select(attrs={
                 'class': 'form-select',
                 'required': True

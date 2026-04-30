@@ -16,6 +16,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views.generic import UpdateView
 from .forms import UserProfileForm
+from django.http import JsonResponse
 from django.views.generic import UpdateView
 from .models import UserProfile
 
@@ -49,6 +50,23 @@ def home(request):
     
     return render(request, 'knowledge/home.html', context)
 
+def search_autocomplete(request):
+    query = request.GET.get('q', '')
+    results = []
+    if len(query) > 2:
+        # Используем твою логику с поисковым вектором для точности[cite: 1]
+        articles = Article.objects.filter(
+            status='published',
+            title__icontains=query # Для автокомплита icontains работает быстрее и лучше
+        )[:5] # Ограничимся 5 результатами для "сочности"
+        
+        for article in articles:
+            results.append({
+                'id': article.id,
+                'title': article.title,
+                'url': f"/article/{article.id}/" # Или используй reverse
+            })
+    return JsonResponse({'results': results})
 
 def all_sections(request):
     """Страница со всеми разделами в древовидной форме с поиском"""

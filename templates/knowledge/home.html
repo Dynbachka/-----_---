@@ -115,14 +115,22 @@
                 <h1 class="display-3 fw-extrabold mb-3">Как мы можем помочь?</h1>
                 <p class="lead mb-5 opacity-75">Поиск инструкций, регламентов и ответов на вопросы в едином пространстве</p>
                 
-                <form method="get" action="{% url 'knowledge:search' %}" class="search-container mb-4">
-                    <div class="input-group input-group-lg shadow-sm">
-                        <input type="text" name="q" class="form-control" placeholder="Введите ключевые слова для поиска..." aria-label="Search">
-                        <button class="btn btn-light px-4" type="submit" style="color: #333; font-weight: 600;">
-                            <i class="bi bi-search me-2"></i> Найти
-                        </button>
-                    </div>
-                </form>
+                <form method="get" action="{% url 'knowledge:search' %}" class="search-container mb-4 position-relative">
+    <div class="input-group input-group-lg shadow-sm">
+        <!-- Добавили id="live-search" и autocomplete="off" -->
+        <input type="text" name="q" id="live-search" class="form-control" 
+               placeholder="Введите ключевые слова для поиска..." autocomplete="off">
+        <button class="btn btn-light px-4" type="submit" style="color: #333; font-weight: 600;">
+            <i class="bi bi-search me-2"></i> Найти
+        </button>
+    </div>
+    
+    <!-- Контейнер для результатов автокомплита -->
+    <div id="search-results" class="list-group position-absolute w-100 shadow-lg d-none" 
+         style="z-index: 1050; top: 100%; margin-top: 5px; border-radius: 0.5rem; overflow: hidden;">
+        <!-- Сюда JS будет вставлять найденные статьи -->
+    </div>
+</form>
 
                 {% if can_create_article %}
                     <a href="{% url 'knowledge:create_article' %}" class="btn btn-outline-light rounded-pill px-4">
@@ -232,4 +240,44 @@
 
     </div>
 </div>
+<script>const searchInput = document.getElementById('live-search');
+const resultsBox = document.getElementById('search-results');
+
+let debounceTimer;
+
+searchInput.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    const query = searchInput.value;
+
+    if (query.length > 2) {
+        debounceTimer = setTimeout(() => {
+            fetch(`/ajax/search/?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    resultsBox.innerHTML = '';
+                    if (data.results.length > 0) {
+                        data.results.forEach(item => {
+                            resultsBox.innerHTML += `
+                                <a href="${item.url}" class="list-group-item list-group-item-action">
+                                    <i class="bi bi-file-text me-2"></i>${item.title}
+                                </a>`;
+                        });
+                        resultsBox.classList.remove('d-none');
+                    } else {
+                        resultsBox.classList.add('d-none');
+                    }
+                });
+        }, 30); // Задержка 30мс
+    } else {
+        resultsBox.classList.add('d-none');
+    }
+});
+
+// Закрытие при клике мимо
+document.addEventListener('click', (e) => {
+    if (!searchInput.contains(e.target) && !resultsBox.contains(e.target)) {
+        resultsBox.classList.add('d-none');
+    }
+});</script>
+
 {% endblock %}

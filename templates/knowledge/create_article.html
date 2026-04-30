@@ -192,4 +192,26 @@
         fileList.textContent = count > 0 ? `Выбрано файлов: ${count}` : '';
     });
 </script>
+<link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
+<script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
+
+<script>
+    // Инициализация редактора для поля с классом markdown-editor
+    const textArea = document.querySelector('.markdown-editor');
+    if (textArea) {
+        const easyMDE = new EasyMDE({
+            element: textArea,
+            spellChecker: false,
+            forceSync: true, // Важно для корректной отправки формы
+            placeholder: "Начните писать свою статью...",
+            status: ["lines", "words", "cursor"],
+            renderingConfig: {
+                singleLineBreaks: false,
+                codeSyntaxHighlighting: true,
+            },
+        });
+    }
+</script>
 {% endblock %}
+
+<!-- Подключение EasyMDE -->

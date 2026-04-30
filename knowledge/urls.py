@@ -38,6 +38,7 @@ urlpatterns = [
     path('attachment/view/<int:attachment_id>/', views.view_attachment, name='view_attachment'),
 
     # Поиск
+    path('ajax/search/', views.search_autocomplete, name='search_autocomplete'),
     path('search/', views.search, name='search'),
 
     # Теги

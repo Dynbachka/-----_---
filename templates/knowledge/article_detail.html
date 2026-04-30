@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load markdown_extras %}
 
 {% block title %}{{ article.title }} - База знаний{% endblock %}
 
@@ -92,6 +93,30 @@
         content: "→";
         color: #94a3b8;
     }
+
+    .markdown-content h1, .markdown-content h2, .markdown-content h3 {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.5rem;
+    margin-top: 2rem;
+}
+.markdown-content blockquote {
+    border-left: 5px solid #6366f1;
+    padding-left: 1rem;
+    color: #64748b;
+    font-style: italic;
+}
+.markdown-content pre {
+    background: #f1f5f9;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+}
+.markdown-content code {
+    background: #f1f5f9;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    color: #e83e8c;
+}
 </style>
 
 <header class="article-hero">
@@ -129,7 +154,9 @@
             {% endif %}
 
             <article class="article-body">
-                {{ article.content|linebreaks|safe }}
+                <div class="markdown-content">
+    {{ article.content|markdown|safe }}
+</div>
             </article>
 
             {% if article.attachments.all %}
