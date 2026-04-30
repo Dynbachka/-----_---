@@ -1,120 +1,184 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Редактировать "{{ article.title }}" - База знаний{% endblock %}
-
-{% block breadcrumb %}
-<nav class="breadcrumb">
-    <a href="{% url 'knowledge:home' %}">Главная</a>
-    &rsaquo; <a href="{% url 'knowledge:section_detail' article.section.id %}">{{ article.section.title }}</a>
-    &rsaquo; <a href="{% url 'knowledge:article_detail' article.id %}">{{ article.title }}</a>
-    &rsaquo; <span>Редактирование</span>
-</nav>
-{% endblock %}
+{% block title %}Редактирование: {{ article.title }} - База знаний{% endblock %}
 
 {% block content %}
-<div class="card">
-    <h1>Редактировать статью</h1>
-    <p>Текущая версия: {{ article.version }}</p>
+<style>
+    :root {
+        --accent-color: #6366f1;
+        --sidebar-bg: #f8fafc;
+        --history-border: #e2e8f0;
+    }
+
+    .editor-wrapper {
+        background: #fff;
+        border-radius: 1rem;
+    }
+
+    .sticky-sidebar {
+        position: sticky;
+        top: 1.5rem;
+    }
+
+    .sidebar-block {
+        background: var(--sidebar-bg);
+        border: 1px solid var(--history-border);
+        border-radius: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Стили истории версий */
+    .history-item {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--history-border);
+        font-size: 0.85rem;
+    }
+    .history-item:last-child { border-bottom: none; }
     
-    {% if messages %}
-    <div style="margin-bottom: 1.5rem;">
-        {% for message in messages %}
-        <div style="padding: 1rem; border-radius: 4px; 
-                   {% if message.tags == 'error' %}background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;
-                   {% else %}background: #d4edda; color: #155724; border: 1px solid #c3e6cb;{% endif %}">
-            {{ message }}
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-    
-    <form method="post" style="margin-top: 2rem;">
+    .version-badge {
+        background: #e0e7ff;
+        color: var(--accent-color);
+        font-weight: 700;
+        padding: 0.15rem 0.5rem;
+        border-radius: 0.4rem;
+    }
+
+    .title-field {
+        font-size: 2.25rem;
+        font-weight: 800;
+        border: none !important;
+        padding: 0 !important;
+        margin-bottom: 1.5rem;
+        color: #1e293b;
+    }
+    .title-field:focus { box-shadow: none !important; }
+
+    .form-label-caps {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #64748b;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+</style>
+
+<div class="container py-4">
+    <!-- Навигация -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{% url 'knowledge:home' %}" class="text-decoration-none">Главная</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'knowledge:section_detail' article.section.id %}" class="text-decoration-none">{{ article.section.title }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'knowledge:article_detail' article.id %}" class="text-decoration-none">{{ article.title }}</a></li>
+            <li class="breadcrumb-item active">Редактирование</li>
+        </ol>
+    </nav>
+
+    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
         {% csrf_token %}
         
-        {% if form.non_field_errors %}
-        <div style="color: #dc3545; margin-bottom: 1rem;">
-            {{ form.non_field_errors }}
-        </div>
-        {% endif %}
-        
-        {% for field in form %}
-        <div style="margin-bottom: 1.5rem;">
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: bold;">
-                {{ field.label }}
-                {% if field.field.required %}<span style="color: #dc3545;">*</span>{% endif %}
-            </label>
-            
-            {{ field }}
-            
-            {% if field.help_text %}
-            <div style="font-size: 0.8rem; color: #6c757d; margin-top: 0.25rem;">
-                {{ field.help_text }}
+        <div class="row g-4">
+            <!-- Основной редактор -->
+            <div class="col-lg-8">
+                <div class="editor-wrapper p-2">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span class="version-badge">v.{{ article.version }}</span>
+                        <span class="text-muted small">Последнее обновление: {{ article.updated_at|date:"d.m.Y H:i" }}</span>
+                    </div>
+
+                    <!-- Заголовок -->
+                    {{ form.title }}
+                    
+                    <!-- Резюме -->
+                    <div class="mb-4">
+                        <label class="form-label-caps">Краткое описание</label>
+                        {{ form.summary }}
+                    </div>
+
+                    <!-- Текст статьи -->
+                    <div class="mb-4">
+                        <label class="form-label-caps">Содержание материала</label>
+                        {{ form.content }}
+                        
+                    </div>
+                </div>
             </div>
-            {% endif %}
-            
-            {% if field.errors %}
-            <div style="color: #dc3545; font-size: 0.9rem; margin-top: 0.25rem;">
-                {{ field.errors }}
+
+            <!-- Сайдбар управления -->
+            <div class="col-lg-4">
+                <div class="sticky-sidebar">
+                    
+                    <!-- Блок публикации -->
+                    <div class="sidebar-block p-4 shadow-sm">
+                        <h6 class="fw-bold mb-3">Публикация</h6>
+                        
+                        <div class="mb-3">
+                            <label class="form-label-caps">Раздел знаний</label>
+                            {{ form.section }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label-caps">Статус статьи</label>
+                            {{ form.status }}
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label-caps">Тематические теги</label>
+                            {{ form.tags }}
+                        </div>
+
+                        <hr>
+
+                        <!-- Причина изменений (Обязательно для ArticleEditForm) -->
+                        <div class="mb-4">
+                            <label class="form-label-caps text-primary">Что изменилось?</label>
+                            {{ form.change_reason }}
+                            <div class="form-text small">Кратко опишите правки для истории версий[cite: 4].</div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-save2 me-2"></i>Сохранить версию
+                            </button>
+                            <a href="{% url 'knowledge:article_detail' article.id %}" class="btn btn-outline-secondary">
+                                Отмена
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Блок истории (последние 5 правок) -->
+                    <div class="sidebar-block p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0">История версий</h6>
+                            <i class="bi bi-clock-history text-muted"></i>
+                        </div>
+                        
+                        <div class="history-list">
+                            {% if article.history.all %}
+                                {% for history in article.history.all|slice:":5" %}
+                                <div class="history-item">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span class="fw-bold">v.{{ history.version }}</span>
+                                        <span class="text-muted">{{ history.modified_at|date:"d.m" }}</span>
+                                    </div>
+                                    <div class="text-dark small mb-1">{{ history.change_reason|default:"Без описания правки" }}</div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">
+                                        <i class="bi bi-person me-1"></i>{{ history.modified_by.username }}
+                                    </div>
+                                </div>
+                               
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted small mb-0">История изменений пуста.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                </div>
             </div>
-            {% endif %}
-        </div>
-        {% endfor %}
-        
-        <div style="display: flex; gap: 1rem;">
-            <button type="submit" class="search-button" style="border: none; cursor: pointer;">
-                💾 Сохранить изменения
-            </button>
-            <a href="{% url 'knowledge:article_detail' article.id %}" 
-               class="search-button" 
-               style="background: #95a5a6; text-decoration: none; display: inline-block;">
-                ❌ Отмена
-            </a>
         </div>
     </form>
 </div>
-
-<div class="card">
-    <h3>История изменений</h3>
-    {% if article.history.all %}
-    <ul style="list-style: none;">
-        {% for history in article.history.all|slice:":5" %}
-        <li style="padding: 0.5rem 0; border-bottom: 1px solid #ecf0f1;">
-            <strong>Версия {{ history.version }}</strong> • 
-            {{ history.modified_at|date:"d.m.Y H:i" }} • 
-            {{ history.modified_by.get_full_name|default:history.modified_by.username }}
-            {% if history.change_reason %}
-            <br><em>Причина: {{ history.change_reason }}</em>
-            {% endif %}
-        </li>
-        {% endfor %}
-    </ul>
-    {% else %}
-    <p>История изменений пока пуста.</p>
-    {% endif %}
-</div>
-
-<style>
-.form-control {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
-}
-
-.form-control:focus {
-    border-color: #3498db;
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-}
-
-textarea.form-control {
-    resize: vertical;
-    min-height: 100px;
-}
-
-select.form-control {
-    background-color: white;
-}
-</style>
 {% endblock %}
