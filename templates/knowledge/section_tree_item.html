@@ -1,19 +1,25 @@
-{% if section.section_set.all %}
-    <div class="section-header">
-        <div class="section-toggle collapsed">
-            <i class="bi bi-chevron-right"></i>
-        </div>
-        <i class="bi bi-folder section-icon"></i>
-        <span class="section-title">{{ section.title }}</span>
-        <span class="section-badge">{{ section.article_set.count }}</span>
+<li>
+    <div class="tree-item-content">
+        <a href="{% url 'knowledge:section_detail' section.id %}" class="tree-link">
+            {% if section.children.exists %}
+                <i class="bi bi-folder2-open text-primary"></i>
+            {% else %}
+                <i class="bi bi-file-earmark-text text-secondary"></i>
+            {% endif %}
+            
+            <span class="{% if depth == 0 %}fw-bold text-dark{% endif %}">
+                {{ section.title }}
+            </span>
+            
+            <span class="tree-item-badge">{{ section.get_articles_count }}</span>
+        </a>
     </div>
-    <div class="section-content">
-        <!-- ... -->
-    </div>
-{% else %}
-    <a href="{% url 'knowledge:section_detail' section.id %}" class="section-header section-link">
-        <i class="bi bi-folder section-icon"></i>
-        <span class="section-title">{{ section.title }}</span>
-        <span class="section-badge">{{ section.article_set.count }}</span>
-    </a>
-{% endif %}
+
+    {% if section.children.exists %}
+        <ul class="tree-sub-list">
+            {% for child in section.children.all %}
+                {% include "knowledge/section_tree_item.html" with section=child depth=depth|add:1 %}
+            {% endfor %}
+        </ul>
+    {% endif %}
+</li>

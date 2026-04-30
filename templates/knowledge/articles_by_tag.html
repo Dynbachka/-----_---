@@ -4,225 +4,140 @@
 {% block title %}Статьи с тегом "{{ tag_name }}" - База знаний{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <!-- Заголовок с возвратом -->
-    <div class="mb-5 pb-4 border-bottom">
-        <div class="d-flex justify-content-between align-items-start">
-            <div>
-                <h1 class="h2 mb-2">
-                    <i class="bi bi-tag" style="color: #667eea;"></i> 
-                    <span class="text-primary">{{ tag_name }}</span>
-                </h1>
-                <p class="text-muted">Все статьи с этим тегом</p>
-            </div>
-            <a href="{% url 'knowledge:tag_cloud' %}" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-arrow-left"></i> К тегам
-            </a>
-        </div>
-    </div>
-
-    <!-- Статистика -->
-    <div class="row g-3 mb-5">
-        <div class="col-md-4">
-            <div class="card border-0 bg-light shadow-sm">
-                <div class="card-body text-center">
-                    <h3 class="h4 text-primary mb-1">{{ articles|length }}</h3>
-                    <small class="text-muted">Статей с этим тегом</small>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Статьи -->
-    {% if articles %}
-        <div class="articles-list">
-            {% for article in articles %}
-                <div class="card mb-4 border-0 shadow-sm hover-card" style="transition: all 0.3s ease;">
-                    <div class="card-body p-4">
-                        <!-- Заголовок -->
-                        <h5 class="card-title mb-3">
-                            <a href="{% url 'knowledge:article_detail' article.id %}" class="text-decoration-none text-dark">
-                                <i class="bi bi-file-earmark-text" style="color: #28a745;"></i>
-                                {{ article.title }}
-                            </a>
-                        </h5>
-                        
-                        <!-- Краткое описание -->
-                        {% if article.summary %}
-                            <p class="card-text text-muted mb-3">
-                                {{ article.summary|truncatewords:30 }}
-                            </p>
-                        {% endif %}
-                        
-                        <!-- Информация о статье -->
-                        <div class="row g-3 mb-3 pb-3 border-bottom text-muted small">
-                            <div class="col-auto">
-                                <i class="bi bi-folder"></i>
-                                <a href="{% url 'knowledge:section_detail' article.section.id %}" class="text-muted text-decoration-none">
-                                    {{ article.section.title }}
-                                </a>
-                            </div>
-                            <div class="col-auto">
-                                <i class="bi bi-person"></i> 
-                                <strong>{{ article.author.first_name|default:article.author.username }}</strong>
-                            </div>
-                            <div class="col-auto">
-                                <i class="bi bi-calendar"></i> 
-                                {{ article.created_at|date:"d.m.Y" }}
-                            </div>
-                            <div class="col-auto">
-                                <i class="bi bi-eye"></i> 
-                                {{ article.view_count }} просмотров
-                            </div>
-                        </div>
-                        
-                        <!-- Теги (если есть другие) -->
-                        {% if article.tags.all %}
-                            <div class="mb-3">
-                                {% for tag in article.tags.all %}
-                                    {% if tag.name != tag_name %}
-                                        <a href="{% url 'knowledge:articles_by_tag' tag.name %}" class="badge bg-light text-dark me-1 mb-1">
-                                            <i class="bi bi-tag"></i> {{ tag.name }}
-                                        </a>
-                                    {% else %}
-                                        <span class="badge bg-primary me-1 mb-1">
-                                            <i class="bi bi-tag-fill"></i> {{ tag.name }}
-                                        </span>
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        
-                        <!-- Кнопка читать -->
-                        <div class="d-flex gap-2">
-                            <a href="{% url 'knowledge:article_detail' article.id %}" class="btn btn-outline-primary btn-sm">
-                                <i class="bi bi-book"></i> Читать полностью →
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-
-        <!-- Пагинация (если понадобится) -->
-        {% if is_paginated %}
-            <nav aria-label="Навигация по страницам" class="mt-5">
-                <ul class="pagination justify-content-center">
-                    {% if page_obj.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page=1">Первая</a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Назад</a>
-                        </li>
-                    {% endif %}
-
-                    {% for num in page_obj.paginator.page_range %}
-                        {% if page_obj.number == num %}
-                            <li class="page-item active">
-                                <span class="page-link">{{ num }}</span>
-                            </li>
-                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                            </li>
-                        {% endif %}
-                    {% endfor %}
-
-                    {% if page_obj.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Вперёд</a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Последняя</a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </nav>
-        {% endif %}
-
-    {% else %}
-        <!-- Нет статей -->
-        <div class="alert alert-info border-0 shadow-sm" role="alert">
-            <div class="d-flex align-items-center">
-                <i class="bi bi-info-circle me-3" style="font-size: 2rem; color: #0c5460;"></i>
-                <div>
-                    <h5 class="alert-heading mb-1">Статей не найдено</h5>
-                    <small>К сожалению, в базе знаний нет опубликованных статей с тегом "{{ tag_name }}"</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="mt-4 text-center">
-            <a href="{% url 'knowledge:tag_cloud' %}" class="btn btn-outline-primary">
-                <i class="bi bi-arrow-left"></i> Вернуться к тегам
-            </a>
-            <a href="{% url 'knowledge:home' %}" class="btn btn-outline-secondary">
-                <i class="bi bi-house"></i> На главную
-            </a>
-        </div>
-    {% endif %}
-</div>
-
 <style>
-    .hover-card {
+    :root {
+        --accent-color: #6366f1;
+        --bg-light: #f8fafc;
+    }
+
+    /* Hero секция */
+    .tag-hero {
+        background-color: #f1f5f9;
+        padding: 3rem 0;
+        margin-bottom: 3rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "→";
+        color: #94a3b8;
+    }
+
+    /* Карточки статей */
+    .article-card-horizontal {
+        border: 1px solid #e2e8f0;
+        border-radius: 1rem;
         transition: all 0.3s ease;
-        cursor: pointer;
-    }
-    
-    .hover-card:hover {
-        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15) !important;
-        transform: translateY(-3px);
+        background: white;
+        overflow: hidden;
     }
 
-    .card-title a {
-        transition: color 0.3s ease;
+    .article-card-horizontal:hover {
+        border-color: var(--accent-color);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        transform: translateY(-2px);
     }
 
-    .card-title a:hover {
-        color: #667eea !important;
+    .tag-indicator {
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--accent-color);
+        font-weight: 700;
+        padding: 0.5rem 1rem;
+        border-radius: 0.75rem;
+        display: inline-flex;
+        align-items: center;
     }
 
-    .badge {
-        font-weight: 500;
-        padding: 0.4rem 0.7rem;
-        font-size: 0.85rem;
-    }
-
-    .btn-outline-primary {
-        transition: all 0.3s ease;
-    }
-
-    .btn-outline-primary:hover {
-        background-color: #667eea;
-        border-color: #667eea;
-        transform: translateX(2px);
-    }
-
-    .articles-list {
-        animation: fadeIn 0.5s ease;
-    }
-
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    /* Для мобильных */
-    @media (max-width: 768px) {
-        .card-body {
-            padding: 1.5rem !important;
-        }
-
-        .h2 {
-            font-size: 1.5rem;
-        }
+    .badge-stat {
+        background: white;
+        border: 1px solid #e2e8f0;
+        color: #64748b;
     }
 </style>
+
+<header class="tag-hero">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{% url 'knowledge:home' %}" class="text-decoration-none text-muted">Главная</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'knowledge:tag_cloud' %}" class="text-decoration-none text-muted">Теги</a></li>
+                <li class="breadcrumb-item active" aria-current="page">#{{ tag_name }}</li>
+            </ol>
+        </nav>
+        
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <div class="tag-indicator mb-3">
+                    <i class="bi bi-hash fs-4"></i> Тег
+                </div>
+                <h1 class="display-4 fw-bold text-dark mb-0">
+                    {{ tag_name }}
+                </h1>
+            </div>
+            <div class="d-flex gap-3">
+                <div class="bg-white p-3 rounded-4 shadow-sm text-center border" style="min-width: 120px;">
+                    <h4 class="fw-bold mb-0 text-primary">{{ articles|length }}</h4>
+                    <small class="text-muted">статей</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="container pb-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h4 mb-0 fw-bold">Материалы по теме</h2>
+                <a href="{% url 'knowledge:tag_cloud' %}" class="btn btn-link text-decoration-none small">
+                    <i class="bi bi-arrow-left"></i> Ко всем тегам
+                </a>
+            </div>
+
+            {% if articles %}
+                <div class="d-flex flex-column gap-4">
+                    {% for article in articles %}
+                        <div class="article-card-horizontal p-4">
+                            <div class="row align-items-center">
+                                <div class="col-md-9">
+                                    <div class="d-flex gap-2 mb-2">
+                                        <span class="badge badge-stat rounded-pill">
+                                            <i class="bi bi-eye text-primary me-1"></i> {{ article.view_count }}
+                                        </span>
+                                        <span class="badge bg-light text-muted border rounded-pill">
+                                            {{ article.section.title }}
+                                        </span>
+                                    </div>
+                                    <a href="{% url 'knowledge:article_detail' article.id %}" class="text-decoration-none">
+                                        <h3 class="h4 text-dark fw-bold mb-2">{{ article.title }}</h3>
+                                    </a>
+                                    <p class="text-muted small mb-3">
+                                        {{ article.summary|truncatewords:20 }}
+                                    </p>
+                                    <div class="d-flex align-items-center text-muted gap-3" style="font-size: 0.85rem;">
+                                        <span><i class="bi bi-person me-1"></i> {{ article.author.get_full_name|default:article.author.username }}</span>
+                                        <span><i class="bi bi-calendar3 me-1"></i> {{ article.created_at|date:"d M Y" }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 text-md-end mt-3 mt-md-0">
+                                    <a href="{% url 'knowledge:article_detail' article.id %}" class="btn btn-outline-primary rounded-pill px-4">
+                                        Читать <i class="bi bi-arrow-right ms-1"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <div class="bg-light d-inline-block p-4 rounded-circle mb-3">
+                        <i class="bi bi-search display-4 text-muted"></i>
+                    </div>
+                    <h4 class="fw-bold">Статей не найдено</h4>
+                    <p class="text-muted">Похоже, с этим тегом еще нет опубликованных материалов.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
 {% endblock %}

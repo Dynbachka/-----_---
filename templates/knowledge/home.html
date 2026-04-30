@@ -1,171 +1,235 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}База знаний{% endblock %}
+{% block title %}База знаний | Главная{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <!-- Героический баннер -->
-    <section class="mb-5 p-5 rounded-3 text-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-        <h1 class="display-4 fw-bold mb-3">
-            <i class="bi bi-book"></i> Добро пожаловать в базу знаний
-        </h1>
-        <p class="lead mb-4" style="color: rgba(255,255,255,0.9);">
-            Найдите информацию, которая вам нужна, или создайте новую статью
-        </p>
-        
-        <!-- Поисковая строка -->
-        <form method="get" action="{% url 'knowledge:search' %}" class="mb-4">
-            <div class="input-group input-group-lg mx-auto" style="max-width: 600px;">
-                <input type="text" name="q" class="form-control" placeholder="Поиск по базе знаний..." required>
-                <button class="btn btn-light" type="submit">
-                    <i class="bi bi-search"></i> Поиск
-                </button>
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+        --soft-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.1);
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .hero-section {
+        background: var(--primary-gradient);
+        border-radius: 1.5rem;
+        padding: 5rem 2rem;
+        margin-bottom: 4rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Декоративные круги на фоне баннера */
+    .hero-section::before {
+        content: "";
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 200px;
+        height: 200px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+
+    .search-container .form-control {
+        border: none;
+        border-radius: 0.75rem 0 0 0.75rem;
+        padding-left: 1.5rem;
+    }
+
+    .search-container .btn {
+        border-radius: 0 0.75rem 0.75rem 0;
+        padding: 0 1.5rem;
+        font-weight: 600;
+    }
+
+    .section-card {
+        border: 1px solid #f1f5f9;
+        border-radius: 1rem;
+        transition: var(--transition);
+        background: #fff;
+    }
+
+    .section-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+        border-color: #6366f1;
+    }
+
+    .article-card {
+        border-radius: 1rem;
+        transition: var(--transition);
+        border: 1px solid transparent;
+    }
+
+    .article-card:hover {
+        background: #f8fafc;
+        border-color: #e2e8f0;
+    }
+
+    .badge-viewer {
+        background: rgba(99, 102, 241, 0.1);
+        color: #6366f1;
+        font-weight: 600;
+    }
+
+    .list-group-item {
+        border: none;
+        margin-bottom: 0.5rem;
+        border-radius: 0.75rem !important;
+        transition: var(--transition);
+    }
+
+    .list-group-item:hover {
+        background-color: #f1f5f9;
+        padding-left: 1.25rem !important;
+    }
+
+    .icon-box {
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.75rem;
+        background: #eef2ff;
+        color: #6366f1;
+        margin-bottom: 1rem;
+    }
+    .find-button {
+        background-color: #6f42c1;
+        color: white;
+        border: none;
+    }
+
+    h2 { font-weight: 700; letter-spacing: -0.02em; }
+</style>
+
+<div class="container py-4">
+    
+    <section class="hero-section text-center text-white shadow-lg">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                
+                <h1 class="display-3 fw-extrabold mb-3">Как мы можем помочь?</h1>
+                <p class="lead mb-5 opacity-75">Поиск инструкций, регламентов и ответов на вопросы в едином пространстве</p>
+                
+                <form method="get" action="{% url 'knowledge:search' %}" class="search-container mb-4">
+                    <div class="input-group input-group-lg shadow-sm">
+                        <input type="text" name="q" class="form-control" placeholder="Введите ключевые слова для поиска..." aria-label="Search">
+                        <button class="btn btn-light px-4" type="submit" style="color: #333; font-weight: 600;">
+                            <i class="bi bi-search me-2"></i> Найти
+                        </button>
+                    </div>
+                </form>
+
+                {% if can_create_article %}
+                    <a href="{% url 'knowledge:create_article' %}" class="btn btn-outline-light rounded-pill px-4">
+                        <i class="bi bi-plus-lg me-2"></i> Создать статью
+                    </a>
+                {% endif %}
             </div>
-        </form>
-        
-        <!-- Кнопка создания статьи (только для администраторов) -->
-        {% if can_create_article %}
-            <a href="{% url 'knowledge:create_article' %}" class="btn btn-light btn-lg">
-                <i class="bi bi-plus-circle"></i> Создать новую статью
-            </a>
-        {% endif %}
+        </div>
     </section>
 
-    <!-- Разделы -->
     <section class="mb-5">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="h3 mb-0">
-                <i class="bi bi-folder2-open"></i> Разделы
-            </h2>
-            <a href="{% url 'knowledge:tag_cloud' %}" class="btn btn-sm btn-outline-secondary">
-                <i class="bi bi-tags"></i> Все теги
+        <div class="d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <h2 class="mb-1">Категории знаний</h2>
+                <p class="text-muted mb-0">Выберите нужный раздел для просмотра материалов</p>
+            </div>
+            <a href="{% url 'knowledge:tag_cloud' %}" class="btn btn-link text-decoration-none fw-bold">
+                Все теги <i class="bi bi-arrow-right ms-1"></i>
             </a>
         </div>
 
-        {% if root_sections %}
-            <div class="row g-4">
-                {% for section in root_sections %}
-                    <div class="col-md-6 col-lg-4">
-                        <a href="{% url 'knowledge:section_detail' section.id %}" class="text-decoration-none">
-                            <div class="card h-100 border-0 shadow-sm" style="transition: all 0.3s ease; cursor: pointer;">
-                                <div class="card-body">
-                                    <h5 class="card-title text-dark">
-                                        <i class="bi bi-folder text-primary"></i>
-                                        {{ section.title }}
-                                    </h5>
-                                    <p class="card-text text-muted small">
-                                        {{ section.description|truncatewords:15 }}
-                                    </p>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <small class="text-muted">
-                                            {{ section.article_set.count }} статей
-                                        </small>
-                                        <span class="btn btn-sm btn-outline-primary">
-                                            Перейти →
-                                        </span>
-                                    </div>
-                                </div>
+        <div class="row g-4">
+            {% for section in root_sections %}
+            <div class="col-md-6 col-lg-4">
+                <a href="{% url 'knowledge:section_detail' section.id %}" class="text-decoration-none text-dark">
+                    <div class="card section-card h-100 p-3">
+                        <div class="card-body">
+                            <div class="icon-box">
+                                <i class="bi bi-folder2-open fs-4"></i>
                             </div>
-                        </a>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="alert alert-info" role="alert">
-                <i class="bi bi-info-circle"></i> В базе знаний пока нет разделов
-            </div>
-        {% endif %}
-    </section>
-
-    <!-- Популярные статьи -->
-    <section class="mb-5">
-        <h2 class="h3 mb-4">
-            <i class="bi bi-fire"></i> Популярные статьи
-        </h2>
-
-        {% if popular_articles %}
-            <div class="row g-4">
-                {% for article in popular_articles %}
-                    <div class="col-md-6">
-                        <a href="{% url 'knowledge:article_detail' article.id %}" class="text-decoration-none">
-                            <div class="card h-100 border-0 shadow-sm" style="transition: all 0.3s ease;">
-                                <div class="card-body">
-                                    <div class="d-flex gap-2 mb-2">
-                                        <span class="badge bg-success">
-                                            <i class="bi bi-eye"></i> {{ article.view_count }} просмотров
-                                        </span>
-                                    </div>
-                                    <h5 class="card-title text-dark">
-                                        {{ article.title }}
-                                    </h5>
-                                    <p class="card-text text-muted">
-                                        {{ article.summary|truncatewords:20 }}
-                                    </p>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <small class="text-muted">
-                                            <i class="bi bi-person"></i> {{ article.author.first_name|default:article.author.username }}<br>
-                                            <i class="bi bi-calendar"></i> {{ article.created_at|date:"d.m.Y" }}
-                                        </small>
-                                    </div>
-                                </div>
+                            <h5 class="fw-bold">{{ section.title }}</h5>
+                            <p class="text-muted small mb-4">{{ section.description|truncatewords:12 }}</p>
+                            <div class="d-flex justify-content-between align-items-center mt-auto">
+                                <span class="badge badge-viewer rounded-pill">{{ section.article_set.count }} статей</span>
+                                <i class="bi bi-chevron-right text-muted"></i>
                             </div>
-                        </a>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="alert alert-info" role="alert">
-                <i class="bi bi-info-circle"></i> Популярных статей пока нет
-            </div>
-        {% endif %}
-    </section>
-
-    <!-- Последние статьи -->
-    <section>
-        <h2 class="h3 mb-4">
-            <i class="bi bi-clock-history"></i> Последние статьи
-        </h2>
-
-        {% if recent_articles %}
-            <div class="list-group list-group-flush">
-                {% for article in recent_articles %}
-                    <a href="{% url 'knowledge:article_detail' article.id %}" class="list-group-item list-group-item-action p-3" style="border-left: 5px solid #667eea;">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h6 class="mb-1 text-dark">{{ article.title }}</h6>
-                                <p class="mb-1 text-muted small">
-                                    {{ article.summary|truncatewords:20 }}
-                                </p>
-                                <small class="text-muted">
-                                    <i class="bi bi-folder"></i> {{ article.section.title }} •
-                                    <i class="bi bi-person"></i> {{ article.author.first_name|default:article.author.username }} •
-                                    <i class="bi bi-calendar"></i> {{ article.created_at|date:"d.m.Y H:i" }}
-                                </small>
-                            </div>
-                            <span class="badge bg-light text-dark">
-                                <i class="bi bi-eye"></i> {{ article.view_count }}
-                            </span>
                         </div>
-                    </a>
+                    </div>
+                </a>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <img src="{% static 'img/empty.svg' %}" alt="Пусто" style="width: 150px;" class="mb-3 opacity-50">
+                <p class="text-muted">Разделы еще не созданы</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <div class="row g-5">
+        
+        <div class="col-lg-7">
+            <div class="d-flex align-items-center mb-4">
+                <div class="p-2 bg-danger bg-opacity-10 rounded-3 me-3">
+                    <i class="bi bi-fire text-danger fs-4"></i>
+                </div>
+                <h3 class="mb-0">В тренде</h3>
+            </div>
+
+            {% for article in popular_articles %}
+            <div class="card article-card mb-3 p-2 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <a href="{% url 'knowledge:article_detail' article.id %}" class="text-decoration-none">
+                            <h5 class="card-title text-dark fw-bold mb-1">{{ article.title }}</h5>
+                        </a>
+                        <span class="badge rounded-pill bg-light text-dark border">
+                            <i class="bi bi-eye text-primary me-1"></i> {{ article.view_count }}
+                        </span>
+                    </div>
+                    <p class="text-muted small mb-3">{{ article.summary|truncatewords:18 }}</p>
+                    <div class="d-flex align-items-center text-muted" style="font-size: 0.85rem;">
+                        <span class="me-3"><i class="bi bi-person me-1"></i> {{ article.author.get_full_name|default:article.author.username }}</span>
+                        <span><i class="bi bi-calendar3 me-1"></i> {{ article.created_at|date:"d M Y" }}</span>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-muted">Нет данных для отображения</p>
+            {% endfor %}
+        </div>
+
+        <div class="col-lg-5">
+            <div class="d-flex align-items-center mb-4">
+                <div class="p-2 bg-primary bg-opacity-10 rounded-3 me-3">
+                    <i class="bi bi-lightning-charge text-primary fs-4"></i>
+                </div>
+                <h3 class="mb-0">Недавние</h3>
+            </div>
+
+            <div class="list-group shadow-sm">
+                {% for article in recent_articles %}
+                <a href="{% url 'knowledge:article_detail' article.id %}" class="list-group-item list-group-item-action p-3">
+                    <div class="d-flex w-100 justify-content-between align-items-center">
+                        <h6 class="mb-1 text-truncate pe-3">{{ article.title }}</h6>
+                        <small class="text-primary fw-bold" style="white-space: nowrap;">{{ article.created_at|date:"d.m" }}</small>
+                    </div>
+                    <div class="d-flex align-items-center mt-2">
+                        <span class="badge bg-secondary bg-opacity-10 text-secondary border-0 rounded-pill px-2 py-1" style="font-size: 0.7rem;">
+                             {{ article.section.title }}
+                        </span>
+                    </div>
+                </a>
                 {% endfor %}
             </div>
-        {% else %}
-            <div class="alert alert-info" role="alert">
-                <i class="bi bi-info-circle"></i> Статей пока нет
-            </div>
-        {% endif %}
-    </section>
-</div>
+        </div>
 
-<style>
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15) !important;
-    }
-    
-    .list-group-item:hover {
-        background-color: #f9f9f9;
-    }
-</style>
+    </div>
+</div>
 {% endblock %}

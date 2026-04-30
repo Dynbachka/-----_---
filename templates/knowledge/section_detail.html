@@ -4,256 +4,239 @@
 {% block title %}{{ section.title }} - База знаний{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-5">
-    <div class="row">
-        <!-- Боковая панель с навигацией (для больших разделов) -->
-        <div class="col-lg-3 mb-4 mb-lg-0">
-            <!-- Структура разделов -->
-            <div class="card border-0 shadow-sm sticky-lg-top" style="top: 100px;">
-                <div class="card-header bg-light border-0">
-                    <h6 class="mb-0">
-                        <i class="bi bi-diagram-3"></i> Структура
-                    </h6>
-                </div>
-                <div class="card-body p-0">
-                    <!-- Хлебные крошки -->
-                    <nav class="breadcrumb breadcrumb-vertical px-3 py-2 mb-3 bg-light rounded">
-                        <a class="breadcrumb-item" href="{% url 'knowledge:home' %}">
-                            <i class="bi bi-house"></i> Главная
-                        </a>
-                        {% for breadcrumb in breadcrumbs %}
-                            {% if breadcrumb == section %}
-                                <span class="breadcrumb-item active">{{ breadcrumb.title }}</span>
-                            {% else %}
-                                <a class="breadcrumb-item" href="{% url 'knowledge:section_detail' breadcrumb.id %}">
-                                    {{ breadcrumb.title }}
-                                </a>
-                            {% endif %}
+<style>
+    :root {
+        --accent-color: #6366f1;
+        --sidebar-bg: #f8fafc;
+    }
+
+    /* Hero секция с заголовком и хлебными крошками */
+    .section-hero {
+        background-color: #f1f5f9;
+        padding: 3rem 0;
+        margin-bottom: 3rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "→";
+        color: #94a3b8;
+    }
+
+    /* Боковая панель */
+    .nav-card {
+        border-radius: 1rem;
+        border: 1px solid #e2e8f0;
+        background: white;
+    }
+
+    .nav-link-custom {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        color: #475569;
+        text-decoration: none;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+    }
+
+    .nav-link-custom:hover {
+        background: #f1f5f9;
+        color: var(--accent-color);
+        transform: translateX(5px);
+    }
+
+    .nav-link-custom i {
+        margin-right: 0.75rem;
+        color: var(--accent-color);
+    }
+
+    /* Сортировка */
+    .filter-bar {
+        background: #f8fafc;
+        border-radius: 0.75rem;
+        padding: 0.5rem;
+        display: inline-flex;
+        gap: 0.25rem;
+    }
+
+    .btn-filter {
+        border: none;
+        background: transparent;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #64748b;
+    }
+
+    .btn-filter.active {
+        background: white;
+        color: var(--accent-color);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    /* Карточки статей */
+    .article-card-alt {
+        border: 1px solid #e2e8f0;
+        border-radius: 1rem;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .article-card-alt:hover {
+        border-color: var(--accent-color);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        transform: translateY(-2px);
+    }
+
+    .badge-view {
+        background: rgba(99, 102, 241, 0.1);
+        color: var(--accent-color);
+    }
+</style>
+
+<header class="section-hero">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{% url 'knowledge:home' %}" class="text-decoration-none text-muted">Главная</a></li>
+                {% for breadcrumb in breadcrumbs %}
+                    {% if not forloop.last %}
+                        <li class="breadcrumb-item"><a href="{% url 'knowledge:section_detail' breadcrumb.id %}" class="text-decoration-none text-muted">{{ breadcrumb.title }}</a></li>
+                    {% else %}
+                        <li class="breadcrumb-item active">{{ breadcrumb.title }}</li>
+                    {% endif %}
+                {% endfor %}
+            </ol>
+        </nav>
+        
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <h1 class="display-5 fw-bold text-dark mb-2">
+                    <i class="bi bi-folder2-open text-primary me-2"></i>{{ section.title }}
+                </h1>
+                <p class="lead text-muted mb-0">{{ section.description }}</p>
+            </div>
+            {% if can_create_article %}
+                <a href="{% url 'knowledge:create_article' %}?section={{ section.id }}" class="btn btn-primary rounded-pill px-4 py-2 shadow-sm">
+                    <i class="bi bi-plus-lg me-2"></i> Создать статью
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</header>
+
+<div class="container pb-5">
+    <div class="row g-5">
+        <div class="col-lg-3">
+            <aside class="sticky-top" style="top: 2rem;">
+                <div class="nav-card p-3 mb-4 shadow-sm">
+                    <h6 class="fw-bold text-uppercase small text-muted mb-3 px-2">Подразделы</h6>
+                    <nav class="d-flex flex-column gap-1">
+                        {% for sub in subsections %}
+                            <a href="{% url 'knowledge:section_detail' sub.id %}" class="nav-link-custom">
+                                <i class="bi bi-folder2"></i>
+                                <span>{{ sub.title }}</span>
+                                <span class="ms-auto badge bg-light text-muted rounded-pill">{{ sub.articles.count }}</span>
+                            </a>
+                        {% empty %}
+                            <p class="text-muted small px-2 mb-0">Вложенных разделов нет</p>
                         {% endfor %}
                     </nav>
-                    
-                    <!-- Подразделы -->
-                    {% if subsections %}
-                        <div class="px-3 mb-3">
-                            <small class="text-muted fw-bold d-block mb-2">Подразделы:</small>
-                            <div class="list-group list-group-sm">
-                                {% for subsection in subsections %}
-                                    <a href="{% url 'knowledge:section_detail' subsection.id %}" class="list-group-item list-group-item-action py-2 px-2">
-                                        <small>
-                                            <i class="bi bi-folder text-info"></i>
-                                            {{ subsection.title }}
-                                            <span class="badge bg-light text-dark float-end">{{ subsection.article_set.count }}</span>
-                                        </small>
-                                    </a>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    {% endif %}
-                    
-                    <!-- Поиск по тегам в разделе -->
-                    {% if section.article_set.all %}
-                        <div class="px-3">
-                            <small class="text-muted fw-bold d-block mb-2">Популярные теги:</small>
-                            <div id="section-tags">
-                                {% regroup section.article_set.all by tags.all as tags_list %}
-                                {% for tag_group in tags_list %}
-                                    {% for tag in tag_group.grouper %}
-                                        <a href="{% url 'knowledge:articles_by_tag' tag.name %}" class="badge bg-light text-dark me-1 mb-1">
-                                            {{ tag.name }}
-                                        </a>
-                                    {% endfor %}
-                                {% endfor %}
-                            </div>
-                        </div>
-                    {% endif %}
                 </div>
-            </div>
+
+                <div class="p-4 bg-light rounded-4 border">
+                    <h6 class="fw-bold small mb-2">Статистика раздела</h6>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted small">Всего статей:</span>
+                        <span class="small fw-bold">{{ page_obj.paginator.count }}</span>
+                    </div>
+                </div>
+            </aside>
         </div>
 
-        <!-- Основной контент -->
         <div class="col-lg-9">
-            <!-- Заголовок раздела -->
-            <div class="mb-5">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div>
-                        <h1 class="h2 mb-2">
-                            <i class="bi bi-folder2-open text-primary"></i> {{ section.title }}
-                        </h1>
-                        {% if section.description %}
-                            <p class="lead text-muted">{{ section.description }}</p>
-                        {% endif %}
-                        <small class="text-muted">
-                            Всего статей: <strong>{{ articles.count }}</strong>
-                        </small>
-                    </div>
-                    <!-- Кнопка создания статьи -->
-                    {% if can_create_article %}
-                        <a href="{% url 'knowledge:create_article_in_section' section.id %}" class="btn btn-primary btn-lg">
-                            <i class="bi bi-plus-circle"></i> Создать статью
-                        </a>
-                    {% endif %}
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="filter-bar shadow-sm">
+                    <a href="?sort=new" class="btn-filter {% if request.GET.sort == 'new' or not request.GET.sort %}active{% endif %}">Новые</a>
+                    <a href="?sort=popular" class="btn-filter {% if request.GET.sort == 'popular' %}active{% endif %}">Популярные</a>
+                    <a href="?sort=title" class="btn-filter {% if request.GET.sort == 'title' %}active{% endif %}">А–Я</a>
                 </div>
+                <small class="text-muted">Показано: {{ page_obj.object_list|length }} из {{ page_obj.paginator.count }}</small>
             </div>
 
-            <!-- Сортировка и фильтрация -->
-            {% if articles %}
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div class="btn-group" role="group" aria-label="Сортировка">
-                        <a href="?sort=newest" class="btn btn-outline-secondary btn-sm">
-                            <i class="bi bi-calendar-event"></i> Новые
-                        </a>
-                        <a href="?sort=popular" class="btn btn-outline-secondary btn-sm">
-                            <i class="bi bi-fire"></i> Популярные
-                        </a>
-                        <a href="?sort=title" class="btn btn-outline-secondary btn-sm">
-                            <i class="bi bi-sort-alpha-down"></i> По названию
-                        </a>
-                    </div>
-                    <div>
-                        <small class="text-muted">Показано: <strong>{{ articles|length }}</strong></small>
-                    </div>
-                </div>
-            {% endif %}
-
-            <!-- Статьи раздела -->
-            {% if articles %}
-                <div class="articles-list">
-                    {% for article in articles %}
-                        <div class="card mb-3 border-0 shadow-sm hover-card">
-                            <div class="card-body">
-                                <div class="row align-items-start">
-                                    <div class="col">
-                                        <h5 class="card-title mb-2">
-                                            <a href="{% url 'knowledge:article_detail' article.id %}" class="text-decoration-none text-dark">
-                                                <i class="bi bi-file-earmark-text text-success"></i>
-                                                {{ article.title }}
-                                            </a>
-                                        </h5>
-                                        
-                                        {% if article.summary %}
-                                            <p class="card-text text-muted small mb-2">
-                                                {{ article.summary|truncatewords:30 }}
-                                            </p>
+            <div class="row g-4">
+                {% for article in page_obj %}
+                    <div class="col-12">
+                        <div class="article-card-alt p-4 shadow-none">
+                            <div class="row align-items-center">
+                                <div class="col-md-9">
+                                    <div class="d-flex gap-2 mb-2">
+                                        <span class="badge badge-view rounded-pill px-3">
+                                            <i class="bi bi-eye me-1"></i> {{ article.view_count }}
+                                        </span>
+                                        {% if article.version > 1 %}
+                                            <span class="badge bg-light text-muted border rounded-pill">v{{ article.version }}</span>
                                         {% endif %}
-                                        
-                                        <!-- Метаинформация -->
-                                        <div class="d-flex flex-wrap gap-3 mb-2">
-                                            <small class="text-muted">
-                                                <i class="bi bi-person"></i> 
-                                                {{ article.author.first_name|default:article.author.username }}
-                                            </small>
-                                            <small class="text-muted">
-                                                <i class="bi bi-calendar"></i> 
-                                                {{ article.created_at|date:"d.m.Y" }}
-                                            </small>
-                                            <small class="text-muted">
-                                                <i class="bi bi-eye"></i> 
-                                                {{ article.view_count }} просмотров
-                                            </small>
-                                        </div>
-                                        
-                                        <!-- Теги -->
+                                    </div>
+                                    <a href="{% url 'knowledge:article_detail' article.id %}" class="text-decoration-none">
+                                        <h3 class="h4 text-dark fw-bold mb-2">{{ article.title }}</h3>
+                                    </a>
+                                    <p class="text-muted small mb-3">{{ article.summary|truncatewords:25 }}</p>
+                                    <div class="d-flex align-items-center text-muted gap-3" style="font-size: 0.85rem;">
+                                        <span><i class="bi bi-person me-1"></i> {{ article.author.get_full_name|default:article.author.username }}</span>
+                                        <span><i class="bi bi-calendar3 me-1"></i> {{ article.created_at|date:"d.m.Y" }}</span>
                                         {% if article.tags.all %}
-                                            <div class="mb-2">
-                                                {% for tag in article.tags.all %}
-                                                    <a href="{% url 'knowledge:articles_by_tag' tag.name %}" class="badge bg-light text-dark me-1">
-                                                        {{ tag.name }}
-                                                    </a>
+                                            <span class="d-none d-md-inline"><i class="bi bi-tags me-1"></i> 
+                                                {% for tag in article.tags.all|slice:":3" %}
+                                                    #{{ tag.name }}{% if not forloop.last %}, {% endif %}
                                                 {% endfor %}
-                                            </div>
+                                            </span>
                                         {% endif %}
                                     </div>
-                                    
-                                    <!-- Статус и действия -->
-                                    <div class="col-auto text-end">
-                                        {% if article.status == 'draft' %}
-                                            <span class="badge bg-warning mb-2">Черновик</span>
-                                        {% endif %}
-                                        <a href="{% url 'knowledge:article_detail' article.id %}" class="btn btn-sm btn-outline-primary">
-                                            Читать →
-                                        </a>
-                                    </div>
+                                </div>
+                                <div class="col-md-3 text-md-end mt-3 mt-md-0">
+                                    <a href="{% url 'knowledge:article_detail' article.id %}" class="btn btn-outline-primary rounded-pill px-4">
+                                        Читать <i class="bi bi-arrow-right ms-1"></i>
+                                    </a>
                                 </div>
                             </div>
                         </div>
-                    {% endfor %}
-                </div>
+                    </div>
+                {% empty %}
+                    <div class="col-12 text-center py-5">
+                        <div class="bg-light d-inline-block p-4 rounded-circle mb-3">
+                            <i class="bi bi-journal-x fs-1 text-muted"></i>
+                        </div>
+                        <h4 class="fw-bold">Статей пока нет</h4>
+                        <p class="text-muted">В этом разделе еще не опубликовано ни одного материала.</p>
+                    </div>
+                {% endfor %}
+            </div>
 
-                <!-- Пагинация (если будет много статей) -->
-                {% if is_paginated %}
-                    <nav aria-label="Навигация по страницам" class="mt-4">
-                        <ul class="pagination justify-content-center">
-                            {% if page_obj.has_previous %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page=1">Первая</a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Назад</a>
-                                </li>
-                            {% endif %}
-
-                            {% for num in page_obj.paginator.page_range %}
-                                {% if page_obj.number == num %}
-                                    <li class="page-item active">
-                                        <span class="page-link">{{ num }}</span>
-                                    </li>
-                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                                    </li>
-                                {% endif %}
-                            {% endfor %}
-
-                            {% if page_obj.has_next %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Вперёд</a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Последняя</a>
-                                </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
-                {% endif %}
-            {% else %}
-                <div class="alert alert-info" role="alert">
-                    <i class="bi bi-info-circle"></i>
-                    {% if can_create_article %}
-                        В этом разделе пока нет статей.
-                        <a href="{% url 'knowledge:create_article_in_section' section.id %}">Создать первую статью</a>
-                    {% else %}
-                        В этом разделе пока нет статей
+            {% if page_obj.has_other_pages %}
+            <nav class="mt-5">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link border-0 rounded-circle mx-1" href="?page={{ page_obj.previous_page_number }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"><i class="bi bi-chevron-left"></i></a></li>
                     {% endif %}
-                </div>
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link border-0 rounded-circle mx-1" style="background: var(--accent-color);">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item"><a class="page-link border-0 rounded-circle mx-1" href="?page={{ num }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">{{ num }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link border-0 rounded-circle mx-1" href="?page={{ page_obj.next_page_number }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"><i class="bi bi-chevron-right"></i></a></li>
+                    {% endif %}
+                </ul>
+            </nav>
             {% endif %}
         </div>
     </div>
 </div>
-
-<style>
-    .breadcrumb-vertical {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-    }
-    
-    .breadcrumb-vertical .breadcrumb-item {
-        display: block;
-    }
-    
-    .hover-card {
-        transition: all 0.3s ease;
-    }
-    
-    .hover-card:hover {
-        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15) !important;
-        transform: translateY(-2px);
-    }
-    
-    @media (max-width: 768px) {
-        .sticky-lg-top {
-            position: static !important;
-        }
-    }
-</style>
 {% endblock %}
